@@ -168,6 +168,17 @@ export class Game {
     users: { [id: string]: User.User },
     rules: Rules.Rules,
   ): Game & { round: Round.Starting | Round.Playing } {
+    if (rules.houseRules.singleAnswer !== undefined) {
+      // "One Answer Only": leave out the calls that need two or three responses. If that would leave no calls at
+      // all, the rule can't be applied, and the decks are used as they are.
+      const single = [...templates].map((t) => ({
+        ...t,
+        calls: new Set(wu(t.calls).filter((c) => Card.slotCount(c) <= 1)),
+      }));
+      if (single.some((t) => t.calls.size > 0)) {
+        templates = single;
+      }
+    }
     let allTemplates: Iterable<Decks.Templates>;
     const cw = rules.houseRules.comedyWriter;
     if (cw !== undefined) {

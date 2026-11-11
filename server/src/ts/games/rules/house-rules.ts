@@ -4,6 +4,7 @@ import type {
   NeverHaveIEver,
   PackingHeat,
   Reboot,
+  SingleAnswer,
 } from "../rules.js";
 import type * as CzarChoices from "./czar-choices.js";
 import type * as HappyEnding from "./happy-ending.js";
@@ -23,6 +24,7 @@ export interface HouseRules {
   czarChoices?: CzarChoices.CzarChoices;
   winnersPick?: WinnersPick.WinnersPick;
   godIsDead?: GodIsDead;
+  singleAnswer?: SingleAnswer;
 }
 
 /**
@@ -38,6 +40,7 @@ export interface Public {
   czarChoices?: CzarChoices.CzarChoices;
   winnersPick?: WinnersPick.WinnersPick;
   godIsDead?: GodIsDead;
+  singleAnswer?: SingleAnswer;
 }
 
 export const censor = (houseRules: HouseRules): Public => ({

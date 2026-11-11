@@ -10,6 +10,7 @@ export interface Preset {
   rules: object;
   public: boolean;
   audienceMode: boolean;
+  chat?: boolean;
   decks: unknown[];
 }
 
@@ -44,6 +45,7 @@ export const validate = (value: unknown): Preset => {
     rules: value.rules,
     public: value.public,
     audienceMode: value.audienceMode,
+    ...(typeof value.chat === "boolean" ? { chat: value.chat } : {}),
     decks: value.decks,
   };
   if (JSON.stringify(preset).length > maxPresetSize) {

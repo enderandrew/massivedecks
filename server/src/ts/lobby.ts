@@ -1,5 +1,6 @@
 import type { CreateLobby } from "./action/initial/create-lobby.js";
 import type { RegisterUser } from "./action/initial/register-user.js";
+import type * as Chat from "./chat.js";
 import type * as Errors from "./errors.js";
 import * as Event from "./event.js";
 import * as PresenceChanged from "./events/lobby-event/presence-changed.js";
@@ -22,6 +23,14 @@ export interface Lobby {
   config: Config.Config;
   game?: Game.Game;
   errors: Errors.Details[];
+  /**
+   * The recent chat, oldest first.
+   */
+  messages?: Chat.Message[];
+  /**
+   * When an invite to this lobby was last posted to Discord.
+   */
+  lastDiscordInvite?: number;
 }
 
 export const fromJSON = (object: Lobby): Lobby =>
@@ -52,6 +61,7 @@ export interface Public {
   config: Config.Public;
   game?: Game.Public;
   errors?: Errors.Details[];
+  messages?: Chat.Message[];
 }
 
 /**
@@ -92,6 +102,8 @@ export const fromDefaults = (
       rules: Rules.fromDefaults(defaults.rules),
       public: defaults.public,
       audienceMode: defaults.audienceMode,
+      // On unless the server's defaults say otherwise.
+      chat: defaults.chat !== false,
       decks: defaults.decks.map((d) => ({
         source: d,
       })),
@@ -169,6 +181,11 @@ export const censor = (lobby: Lobby): Public => ({
   config: Config.censor(lobby.config),
   ...(lobby.game === undefined ? {} : { game: lobby.game.public() }),
   ...(lobby.errors.length === 0 ? {} : { errors: lobby.errors }),
+  ...(lobby.config.chat &&
+  lobby.messages !== undefined &&
+  lobby.messages.length > 0
+    ? { messages: lobby.messages }
+    : {}),
 });
 
 export const addUser = (

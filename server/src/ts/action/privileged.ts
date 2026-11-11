@@ -5,6 +5,7 @@ import type * as Token from "../user/token.js";
 import * as Actions from "./actions.js";
 import * as Configure from "./privileged/configure.js";
 import * as EndGame from "./privileged/end-game.js";
+import * as InviteToDiscord from "./privileged/invite-to-discord.js";
 import * as Kick from "./privileged/kick.js";
 import * as SetPlayerAway from "./privileged/set-player-away.js";
 import * as SetPrivilege from "./privileged/set-privilege.js";
@@ -19,7 +20,8 @@ export type Privileged =
   | SetPlayerAway.SetPlayerAway
   | SetPrivilege.SetPrivilege
   | Kick.Kick
-  | EndGame.EndGame;
+  | EndGame.EndGame
+  | InviteToDiscord.InviteToDiscord;
 
 class PrivilegedActions extends Actions.Group<
   Action,
@@ -35,6 +37,7 @@ class PrivilegedActions extends Actions.Group<
       SetPrivilege.actions,
       Kick.actions,
       EndGame.actions,
+      InviteToDiscord.actions,
     );
   }
 

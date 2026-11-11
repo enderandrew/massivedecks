@@ -1,4 +1,7 @@
+import { promises as fs } from "fs";
+
 import { AxiosRequestConfig, default as Axios } from "axios";
+import JSON5 from "json5";
 
 import type * as Config from "../../../config.js";
 import { SourceNotFoundError } from "../../../errors/action-execution-error.js";
@@ -28,8 +31,20 @@ export interface ClientInfo {
 interface Packs {
   white: string[];
   black: { text: string; pick: number }[];
-  packs: Pack[];
+  // Either a list (the id of a pack is its position), or an object (the id of a pack is its key).
+  packs: Pack[] | { [id: string]: Pack };
 }
+
+/**
+ * The id used for a source that means "every deck there is" (only meaningful in the default decks of the config).
+ */
+export const everyDeck = "*";
+
+/**
+ * Some files have line breaks written out as a backslash and an "n" in the text, rather than as a real line break.
+ */
+const lineBreaks = (text: string): string =>
+  text.replace(/\\n/g, "\n").replace(/\n{2,}/g, "\n");
 
 interface Pack {
   name: string;
@@ -72,7 +87,9 @@ function rawDeckToSummaryAndTemplates(
 
   function call(index: number): Card.Call {
     const from = raw.black[index] as { text: string; pick: number };
-    const parts = from.text.split("\n").map((t) => [...introduceSlots(t)]);
+    // A blank can be written as several underscores in a row.
+    const text = lineBreaks(from.text).replace(/_{2,}/g, "_");
+    const parts = text.split("\n").map((t) => [...introduceSlots(t)]);
     const slots = Card.slotCount(parts);
     const extraSlots = Math.max(0, from.pick - slots);
     return {
@@ -84,7 +101,7 @@ function rawDeckToSummaryAndTemplates(
 
   function response(index: number): Card.Response {
     const from = raw.white[index] as string;
-    const stripped = from.replace("\n", "");
+    const stripped = lineBreaks(from).replace(/\n/g, " ").trim();
     return {
       id: Card.id(),
       source,
@@ -183,9 +200,10 @@ export class MetaResolver implements Source.MetaResolver<JsonAgainstHumanity> {
     this.decks = new Map();
     this.packs = new Map();
     const protoOrder: [string, Pack][] = [];
-    for (let index = 0; index < decks.packs.length; index++) {
-      const id = index.toString();
-      const pack = decks.packs[index] as Pack;
+    const packs: [string, Pack][] = Array.isArray(decks.packs)
+      ? decks.packs.map((pack, index) => [index.toString(), pack])
+      : Object.entries(decks.packs);
+    for (const [id, pack] of packs) {
       this.decks.set(id, rawDeckToSummaryAndTemplates(decks, pack, id));
       this.packs.set(id, pack);
       protoOrder.push([id, pack]);
@@ -225,6 +243,13 @@ export class MetaResolver implements Source.MetaResolver<JsonAgainstHumanity> {
     };
   }
 
+  /**
+   * Every deck this source has, in the order they are shown to users.
+   */
+  public all(): JsonAgainstHumanity[] {
+    return this.order.map((id) => ({ source: "JAH", id }));
+  }
+
   limitedResolver(source: JsonAgainstHumanity): Resolver {
     return this.resolver(source);
   }
@@ -243,6 +268,17 @@ export class MetaResolver implements Source.MetaResolver<JsonAgainstHumanity> {
 export const load = async (
   config: Config.JsonAgainstHumanity,
 ): Promise<MetaResolver> => {
+  // A file on this server takes priority over fetching from a URL.
+  if (config.file !== undefined) {
+    const raw = await fs.readFile(config.file, "utf-8");
+    return new MetaResolver(config, JSON5.parse(raw) as Packs);
+  }
+  if (config.url === undefined) {
+    throw new Error(
+      "The jsonAgainstHumanity source needs either a 'file' or a 'url'.",
+    );
+  }
+
   const httpConfig: AxiosRequestConfig = {
     method: "GET",
     baseURL: config.url,

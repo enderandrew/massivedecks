@@ -145,6 +145,12 @@ export interface WinnersPick {}
  */
 export interface GodIsDead {}
 
+/**
+ * Configuration for the "One Answer Only" house rule.
+ * Calls that need more than one response (pick 2, pick 3) are left out of the game.
+ */
+export interface SingleAnswer {}
+
 export const censor = (rules: Rules): Public => ({
   ...rules,
   houseRules: HouseRules.censor(rules.houseRules),

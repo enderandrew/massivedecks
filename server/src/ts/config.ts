@@ -31,6 +31,23 @@ export interface Config<D extends Duration> extends EnvironmentalConfig {
   cache: BaseCache<D>;
   defaults: LobbyConfig.Defaults;
   adverts?: Adverts;
+  discord?: Discord;
+}
+
+/**
+ * Lets the host of a game post an invite to it in a Discord channel.
+ */
+export interface Discord {
+  /**
+   * The webhook for the channel invites go to (in Discord: Edit Channel > Integrations > Webhooks).
+   * Keep it secret: anyone with it can post to the channel.
+   */
+  webhookUrl: string;
+  /**
+   * The public address of this site, including any path it is served under, e.g. "https://example.com/CAH/".
+   * Links in invites are built from it.
+   */
+  siteUrl: string;
 }
 
 export type Parsed = Config<ParsedDuration>;
@@ -60,7 +77,14 @@ export type ManyDecks = BaseManyDecks<ParsedDuration>;
 
 export interface JsonAgainstHumanity {
   aboutUrl: string;
-  url: string;
+  /**
+   * A file on this server, in the "compact" JSON Against Humanity format. Used instead of the URL if given.
+   */
+  file?: string;
+  /**
+   * Where to fetch the "compact" JSON Against Humanity file from, if no file is given.
+   */
+  url?: string;
 }
 
 interface BaseSources<D extends Duration> {
@@ -187,6 +211,26 @@ export const pullFromEnvironment = (config: Parsed): Parsed => {
     if (value !== undefined) {
       config[name] = value;
     }
+  }
+  // The Discord webhook is a secret, so it can be kept out of the config file.
+  const webhookUrl = process.env["MD_DISCORD_WEBHOOK_URL"];
+  const siteUrl = process.env["MD_DISCORD_SITE_URL"];
+  if (webhookUrl !== undefined || siteUrl !== undefined) {
+    const merged = {
+      ...config.discord,
+      ...(webhookUrl !== undefined ? { webhookUrl } : {}),
+      ...(siteUrl !== undefined ? { siteUrl } : {}),
+    };
+    if (merged.webhookUrl !== undefined && merged.siteUrl !== undefined) {
+      config.discord = merged as Discord;
+    }
+  }
+  if (
+    config.discord !== undefined &&
+    (!config.discord.webhookUrl || !config.discord.siteUrl)
+  ) {
+    // Half set up is not set up.
+    delete config.discord;
   }
   return config;
 };

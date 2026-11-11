@@ -1,5 +1,6 @@
 import * as Actions from "./action/actions.js";
 import * as Authenticate from "./action/authenticate.js";
+import * as SendChat from "./action/chat.js";
 import * as GameAction from "./action/game-action.js";
 import type * as Handler from "./action/handler.js";
 import * as Leave from "./action/leave.js";
@@ -18,13 +19,15 @@ export type Action =
   | GameAction.GameAction
   | Privileged.Privileged
   | SetUserRole.SetUserRole
-  | Leave.Leave;
+  | Leave.Leave
+  | SendChat.SendChat;
 
 const allActions = new Actions.PassThroughGroup(
   GameAction.actions,
   Privileged.actions,
   SetUserRole.actions,
   Leave.actions,
+  SendChat.actions,
 );
 
 const _validateAction = Validation.validate("Action");

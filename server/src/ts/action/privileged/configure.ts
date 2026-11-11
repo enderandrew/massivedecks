@@ -108,6 +108,7 @@ function apply(
       public: updated.public !== undefined ? updated.public : false,
       audienceMode:
         updated.audienceMode !== undefined ? updated.audienceMode : false,
+      chat: updated.chat !== undefined ? updated.chat : false,
     },
     events,
     tasks: allTasks,

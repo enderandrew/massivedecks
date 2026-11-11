@@ -18,6 +18,8 @@ export interface ServerState {
 
 export async function create(config: Config.Parsed): Promise<ServerState> {
   const sources = await Sources.from(config.sources);
+  // "Every deck" in the defaults is filled in now we know what decks there are.
+  config.defaults.decks = sources.expandDefaults(config.defaults.decks);
   const store = await Stores.from(config.storage);
   const cache = await caches.from(config.cache);
   const socketManager = new SocketManager();

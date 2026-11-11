@@ -27,6 +27,12 @@ export const Schema = {
           $ref: "#/definitions/Authenticate",
         },
         {
+          $ref: "#/definitions/SendChat",
+        },
+        {
+          $ref: "#/definitions/InviteToDiscord",
+        },
+        {
           $ref: "#/definitions/SetPresence",
         },
         {
@@ -466,6 +472,42 @@ export const Schema = {
       required: ["action", "user"],
       type: "object",
     },
+    SendChat: {
+      additionalProperties: false,
+      description: "A user says something to everyone in the lobby.",
+      properties: {
+        action: {
+          enum: ["SendChat"],
+          type: "string",
+        },
+        message: {
+          maxLength: 300,
+          minLength: 1,
+          type: "string",
+        },
+      },
+      required: ["action", "message"],
+      type: "object",
+    },
+    InviteToDiscord: {
+      additionalProperties: false,
+      description:
+        "Post an invite to this game to the server's Discord channel.",
+      properties: {
+        action: {
+          enum: ["InviteToDiscord"],
+          type: "string",
+        },
+      },
+      required: ["action"],
+      type: "object",
+    },
+    SingleAnswer: {
+      additionalProperties: false,
+      description:
+        'Configuration for the "One Answer Only" house rule. Calls that need more than one response are left out.',
+      type: "object",
+    },
     Leave: {
       additionalProperties: false,
       description: "A player asks to leave the game.",
@@ -657,6 +699,9 @@ export const Schema = {
         audienceMode: {
           type: "boolean",
         },
+        chat: {
+          type: "boolean",
+        },
         decks: {
           items: {
             anyOf: [
@@ -721,6 +766,9 @@ export const Schema = {
         },
         reboot: {
           $ref: "#/definitions/Reboot",
+        },
+        singleAnswer: {
+          $ref: "#/definitions/SingleAnswer",
         },
         winnersPick: {
           $ref: "#/definitions/WinnersPick",

@@ -11,6 +11,10 @@ export interface Config {
   public: boolean;
   password?: string;
   audienceMode: boolean;
+  /**
+   * If people in the lobby can chat with each other.
+   */
+  chat: boolean;
   decks: ConfiguredSource[];
 }
 
@@ -32,6 +36,7 @@ export interface Public {
    */
   password?: string;
   audienceMode?: boolean;
+  chat?: boolean;
   decks: ConfiguredSource[];
 }
 
@@ -42,6 +47,10 @@ export interface Defaults {
   rules: Rules.Public;
   public: boolean;
   audienceMode: boolean;
+  /**
+   * If chat is on in new lobbies. On if not given.
+   */
+  chat?: boolean;
   decks: Source.External[];
 }
 
@@ -81,5 +90,6 @@ export const censor = (config: Config): Public => ({
   decks: config.decks,
   ...(config.public ? { public: true } : {}),
   ...(config.audienceMode ? { audienceMode: true } : {}),
+  ...(config.chat ? { chat: true } : {}),
   ...(config.password !== undefined ? { password: config.password } : {}),
 });

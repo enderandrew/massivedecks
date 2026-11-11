@@ -624,6 +624,14 @@ export class Starting extends Base<"Starting"> implements Timed {
       if (Card.slotCount(fill) < 1) {
         throw new InvalidActionError("Must have at least one slot.");
       }
+      if (
+        game.rules.houseRules.singleAnswer !== undefined &&
+        Card.slotCount(fill) > 1
+      ) {
+        throw new InvalidActionError(
+          "This game only uses cards with one blank.",
+        );
+      }
       call.parts = fill;
     } else {
       if (fill !== undefined) {

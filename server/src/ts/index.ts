@@ -102,6 +102,8 @@ async function main(): Promise<void> {
       version: config.version,
       sources: state.sources.clientInfo(),
       adverts: config.adverts,
+      // Only whether invites can be posted: the webhook itself never leaves the server.
+      ...(config.discord !== undefined ? { discord: true } : {}),
     }),
   );
 

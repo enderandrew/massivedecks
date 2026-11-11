@@ -36,12 +36,27 @@ export class Sources {
     manyDecks?: ManyDecks.MetaResolver,
     jsonAgainstHumanity?: JsonAgainstHumanity.MetaResolver,
   ) {
-    if (builtIn === undefined && manyDecks === undefined) {
+    if (
+      builtIn === undefined &&
+      manyDecks === undefined &&
+      jsonAgainstHumanity === undefined
+    ) {
       throw new Error("At least one source must be enabled.");
     }
     this.builtIn = builtIn;
     this.manyDecks = manyDecks;
     this.jsonAgainstHumanity = jsonAgainstHumanity;
+  }
+
+  /**
+   * Replace the "every deck" marker in a list of default decks with the decks themselves.
+   */
+  public expandDefaults(decks: Source.External[]): Source.External[] {
+    return decks.flatMap((deck) =>
+      deck.source === "JAH" && deck.id === JsonAgainstHumanity.everyDeck
+        ? this.jsonAgainstHumanity?.all() ?? []
+        : [deck],
+    );
   }
 
   public clientInfo(): ClientInfo {
