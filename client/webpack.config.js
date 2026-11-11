@@ -22,6 +22,49 @@ module.exports = (env, argv) => {
   const src = path.resolve(__dirname, "src");
   const assets = path.resolve(__dirname, "assets");
 
+  // Where the client is served from, e.g. MD_BASE_PATH=/CAH for https://example.com/CAH/.
+  // Unset or "/" means the root of the site.
+  const basePathSegments = (process.env["MD_BASE_PATH"] ?? "")
+    .split("/")
+    .filter((part) => part !== "");
+  const basePath =
+    basePathSegments.length > 0 ? `/${basePathSegments.join("/")}/` : "/";
+  const basePathFilename = `${src}/elm/MassiveDecks/BasePath.elm`;
+  class InjectBasePathPlugin {
+    apply(compiler) {
+      if (basePathSegments.length === 0) return;
+      const logger = compiler.getInfrastructureLogger("InjectBasePathPlugin");
+      let original;
+      const restore = () => {
+        if (original !== undefined) {
+          fs.writeFileSync(basePathFilename, original);
+          original = undefined;
+          logger.info("Base Path Reverted");
+        }
+      };
+      const inject = () => {
+        if (original !== undefined) return;
+        original = fs.readFileSync(basePathFilename, "utf8");
+        const list = basePathSegments.map((s) => JSON.stringify(s)).join(", ");
+        fs.writeFileSync(
+          basePathFilename,
+          original.replace(
+            /^(segments\s*=\s*\n\s*)\[\s*\]/m,
+            `$1[ ${list} ]`,
+          ),
+        );
+        logger.info(`Base Path Injected: ${basePath}`);
+      };
+      compiler.hooks.beforeRun.tap("InjectBasePathPlugin", inject);
+      compiler.hooks.watchRun.tap("InjectBasePathPlugin", inject);
+      compiler.hooks.done.tap("InjectBasePathPlugin", () => {
+        if (!compiler.watchMode) restore();
+      });
+      compiler.hooks.failed.tap("InjectBasePathPlugin", restore);
+      compiler.hooks.watchClose.tap("InjectBasePathPlugin", restore);
+    }
+  }
+
   const version = process.env["MD_VERSION"];
   const metadataFilename = `${src}/elm/MassiveDecks/Version.elm`;
   class InjectMetadataPlugin {
@@ -66,7 +109,7 @@ module.exports = (env, argv) => {
     },
     output: {
       path: dist,
-      publicPath: "/",
+      publicPath: basePath,
       filename: "assets/scripts/[name].[contenthash].js",
       clean: true,
     },
@@ -171,6 +214,7 @@ module.exports = (env, argv) => {
     },
     plugins: [
       new InjectMetadataPlugin(),
+      new InjectBasePathPlugin(),
       new MiniCssExtractPlugin({
         filename: "assets/styles/[name].[contenthash].css",
       }),
@@ -179,12 +223,15 @@ module.exports = (env, argv) => {
         filename: "index.html",
         inject: "body",
         excludeChunks: ["cast"],
+        // the websocket connection takes its address from this
+        base: basePath,
       }),
       new HtmlWebpackPlugin({
         template: path.join(src, "html", "cast.html"),
         filename: "cast.html",
         inject: "body",
         excludeChunks: ["index"],
+        base: basePath,
       }),
       ...(production
         ? [
