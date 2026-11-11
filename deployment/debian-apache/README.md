@@ -29,6 +29,35 @@ Run the same script again to update: it pulls, rebuilds both halves and restarts
 - The Apache conf applies to every site on the machine. To limit it to one site, paste it into that
   `<VirtualHost *:443>` and run `a2disconf massivedecks`.
 
+## After an update that changes the defaults
+
+The config in `/etc/massivedecks/config.json5` is only written on the first install, so new default settings in the
+repository's `server/config.json5` (default decks, house rules that start switched on) don't reach it by themselves:
+
+```sh
+sudo MD_RESET_CONFIG=1 sh massivedecks/deployment/debian-apache/install.sh
+```
+
+The old file is kept beside it as a dated `.bak`.
+
+## Discord invites
+
+The host of a game can post an invite to a Discord channel from the invite dialog. In Discord, make a webhook for the
+channel (Edit Channel > Integrations > Webhooks), then put it and the site's address in
+`/etc/massivedecks/secret.env`:
+
+```sh
+MD_DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/...
+MD_DISCORD_SITE_URL=https://example.com/CAH/
+```
+
+and `sudo systemctl restart massivedecks`. Without these, the dialog still has "Copy invite for Discord".
+
+## The default cards
+
+New games start with every deck in `server/decks/cah-cards-compact.json` (JSON Against Humanity "compact" format).
+Replace that file and restart the service to change the cards.
+
 ## Another path
 
 `MD_BASE_PATH=/games/cah sudo -E sh install.sh`. The client is built for one path, so changing it means running the

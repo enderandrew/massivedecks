@@ -7,6 +7,9 @@
 #   MD_REPO       git repository   (default https://github.com/enderandrew/massivedecks.git)
 #   MD_BRANCH     branch           (default: the repository's default branch)
 #   MD_BASE_PATH  path on the site (default /CAH)
+#   MD_RESET_CONFIG=1  replace /etc/massivedecks/config.json5 with the one from the repository
+#                      (the old one is kept next to it as a dated .bak). Needed to pick up new
+#                      defaults after an update; your secret and Discord settings are not touched.
 set -eu
 
 REPO="${MD_REPO:-https://github.com/enderandrew/massivedecks.git}"
@@ -63,6 +66,11 @@ asmd npm ci --no-audit --no-fund
 asmd env MD_BASE_PATH="$BASE_PATH" npx webpack --mode=production
 
 say "Configuration"
+if [ "${MD_RESET_CONFIG:-0}" = 1 ] && [ -f /etc/massivedecks/config.json5 ]; then
+  backup="/etc/massivedecks/config.json5.$(date +%Y%m%d-%H%M%S).bak"
+  mv /etc/massivedecks/config.json5 "$backup"
+  echo "Kept the old config as $backup"
+fi
 if [ ! -f /etc/massivedecks/config.json5 ]; then
   # the stock config, listening on the socket Apache proxies to
   sed -e 's|^\(\s*\)listenOn:.*|\1listenOn: "/run/massivedecks/server.sock",|' \
@@ -76,6 +84,15 @@ if [ ! -f /etc/massivedecks/secret.env ]; then
   echo "MD_SECRET=$(openssl rand -hex 32)" > /etc/massivedecks/secret.env
   umask 022
   echo "Wrote /etc/massivedecks/secret.env"
+fi
+if ! grep -q "MD_DISCORD" /etc/massivedecks/secret.env; then
+  cat >> /etc/massivedecks/secret.env <<'EOF'
+
+# Discord invites: uncomment and fill in both lines, then `systemctl restart massivedecks`.
+# The webhook comes from Discord: Edit Channel > Integrations > Webhooks > New Webhook > Copy Webhook URL.
+#MD_DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/...
+#MD_DISCORD_SITE_URL=https://example.com/CAH/
+EOF
 fi
 
 say "Service"
