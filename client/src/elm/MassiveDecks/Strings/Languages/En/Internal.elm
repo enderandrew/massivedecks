@@ -1150,6 +1150,43 @@ translate _ mdString =
             , Text "make them players."
             ]
 
+        -- Chat, Discord invites and the "one answer only" rule.
+        HouseRuleSingleAnswer ->
+            [ Text "One Answer Only" ]
+
+        HouseRuleSingleAnswerDescription ->
+            [ Text "Black cards that need two or three answers are left out of the game." ]
+
+        ChatSetting ->
+            [ Text "Chat" ]
+
+        ChatSettingDescription ->
+            [ Text "Let everyone in the game chat with each other." ]
+
+        ChatPlaceholder ->
+            [ Text "Say something…" ]
+
+        ChatSend ->
+            [ Text "Send" ]
+
+        ChatEmpty ->
+            [ Text "No messages yet. Say hello!" ]
+
+        DiscordPost ->
+            [ Text "Post invite to Discord" ]
+
+        DiscordPostDescription ->
+            [ Text "Posts a link to this game in this server's Discord channel." ]
+
+        DiscordCopy ->
+            [ Text "Copy invite for Discord" ]
+
+        DiscordInviteText { url, gameCode } ->
+            [ Text "Come and play with me! Join here: ", Text url, Text " (game code: ", Text gameCode, Text ")" ]
+
+        DiscordInvitePosted { username } ->
+            [ Text username, Text " posted an invite to Discord." ]
+
         StartGame ->
             [ Text "Start Game" ]
 
@@ -1595,6 +1632,8 @@ translate _ mdString =
 
         French ->
             [ Text "French" ]
+
+
 
 {- Private -}
 

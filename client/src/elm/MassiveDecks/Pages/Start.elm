@@ -50,12 +50,12 @@ import MassiveDecks.Util.Html as Html
 import MassiveDecks.Util.Maybe as Maybe
 import MassiveDecks.Util.NeList as NeList exposing (NeList(..))
 import MassiveDecks.Version as Version
+import Svg.Attributes as SvgA
 import Ui.Button as Button
 import Ui.Card as Card
 import Ui.IconButton as IconButton
 import Ui.Tabs as Tabs
 import Ui.TextField as TextField
-import Svg.Attributes as SvgA
 
 
 changeRoute : Route -> Model -> ( Model, Cmd Global.Msg )
@@ -637,6 +637,7 @@ houseRules =
     , ( Strings.HouseRuleHappyEnding, Strings.HouseRuleHappyEndingDescription )
     , ( Strings.HouseRuleWinnersPick, Strings.HouseRuleWinnersPickDescription )
     , ( Strings.HouseRuleGodIsDead, Strings.HouseRuleGodIsDeadDescription )
+    , ( Strings.HouseRuleSingleAnswer, Strings.HouseRuleSingleAnswerDescription )
     ]
 
 

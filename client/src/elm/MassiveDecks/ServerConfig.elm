@@ -16,4 +16,5 @@ type alias ServerConfig =
     { serverVersion : String
     , sourceInfo : Source.Info
     , adverts : Adverts
+    , discord : Bool
     }

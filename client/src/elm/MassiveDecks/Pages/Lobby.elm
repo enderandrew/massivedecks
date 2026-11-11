@@ -8,6 +8,7 @@ module MassiveDecks.Pages.Lobby exposing
     , view
     )
 
+import Browser.Dom as Dom
 import Browser.Navigation as Navigation
 import Dict exposing (Dict)
 import FontAwesome as Icon
@@ -18,6 +19,7 @@ import Html exposing (Html)
 import Html.Attributes as HtmlA
 import Html.Events as HtmlE
 import Html.Keyed as HtmlK
+import Json.Decode
 import Json.Patch as Json
 import MassiveDecks.Animated as Animated exposing (Animated)
 import MassiveDecks.Card.Model as Card
@@ -62,6 +64,7 @@ import MassiveDecks.Util.Html as Html
 import MassiveDecks.Util.Html.Attributes as HtmlA
 import MassiveDecks.Util.Maybe as Maybe
 import MassiveDecks.Util.NeList as NeList
+import Task
 import Ui.Button as Button
 import Ui.Card as Card
 import Ui.IconButton as IconButton
@@ -103,6 +106,9 @@ initWithAuth _ r auth =
       , spectate = Spectate.init
       , gameMenu = Menu.Closed
       , userMenu = Nothing
+      , chatOpen = False
+      , chatDraft = ""
+      , chatUnread = 0
       }
     , ServerConnection.connect auth.claims.gc auth.token
     )
@@ -328,6 +334,34 @@ updateInternal wrap shared msg model =
                         Events.ErrorEncountered { error } ->
                             ( model |> updatedErrors (lobby.errors ++ [ error ]) |> Stay, shared, Cmd.none )
 
+                        Events.ChatReceived { message } ->
+                            let
+                                -- The server keeps the same number, so reconnecting gives the same list.
+                                messages =
+                                    (lobby.messages ++ [ message ]) |> List.reverse |> List.take chatHistoryLimit |> List.reverse
+
+                                unread =
+                                    if model.chatOpen || message.user == model.auth.claims.uid then
+                                        model.chatUnread
+
+                                    else
+                                        model.chatUnread + 1
+
+                                updated =
+                                    model |> updatedLobby (\l -> { l | messages = messages })
+                            in
+                            ( Stay { updated | chatUnread = unread }
+                            , shared
+                            , if model.chatOpen then
+                                scrollChatToEnd wrap
+
+                              else
+                                Cmd.none
+                            )
+
+                        Events.DiscordInviteSent { user } ->
+                            addNotification wrap shared (DiscordInvitePosted user) model
+
                         Events.UserRoleChanged { user, role, hand } ->
                             let
                                 users =
@@ -469,6 +503,32 @@ updateInternal wrap shared msg model =
             in
             ( Stay { model | userMenu = new }, shared, Cmd.none )
 
+        ToggleChat ->
+            if model.chatOpen then
+                ( Stay { model | chatOpen = False }, shared, Cmd.none )
+
+            else
+                ( Stay { model | chatOpen = True, chatUnread = 0 }
+                , shared
+                , Cmd.batch
+                    [ scrollChatToEnd wrap
+                    , Dom.focus chatInputId |> Task.attempt (always (wrap NoOp))
+                    ]
+                )
+
+        SetChatDraft draft ->
+            ( Stay { model | chatDraft = draft }, shared, Cmd.none )
+
+        SendChat ->
+            if model.chatDraft |> String.trim |> String.isEmpty then
+                ( Stay model, shared, Cmd.none )
+
+            else
+                ( Stay { model | chatDraft = "" }, shared, Actions.sendChat (model.chatDraft |> String.trim) )
+
+        InviteToDiscord ->
+            ( Stay model, shared, Actions.inviteToDiscord )
+
         NoOp ->
             ( Stay model, shared, Cmd.none )
 
@@ -584,6 +644,53 @@ viewWithUsers wrap wrapSettings shared s viewContent model =
 
         audienceMode =
             lobby |> Maybe.map (.config >> .privacy >> .audienceMode) |> Maybe.withDefault True
+
+        chatEnabled =
+            lobby |> Maybe.map (.config >> .privacy >> .chat) |> Maybe.withDefault False
+
+        chatButton =
+            if chatEnabled then
+                [ Html.div
+                    [ HtmlA.id "chat-button"
+                    , HtmlA.classList [ ( "unread", model.chatUnread > 0 ), ( "active", model.chatOpen ) ]
+                    ]
+                    [ IconButton.view
+                        (Icon.chat |> Icon.styled [ Icon.lg ] |> Icon.view)
+                        (Strings.ChatSetting |> Lang.string shared)
+                        (ToggleChat |> wrap |> Just)
+                    , if model.chatUnread > 0 then
+                        Html.span [ HtmlA.class "unread-count" ]
+                            [ Html.text
+                                (if model.chatUnread > 99 then
+                                    "99+"
+
+                                 else
+                                    String.fromInt model.chatUnread
+                                )
+                            ]
+
+                      else
+                        Html.nothing
+                    ]
+                ]
+
+            else
+                []
+
+        chatPanel =
+            case lobby of
+                Just l ->
+                    if chatEnabled then
+                        viewChat wrap shared model l
+
+                    else
+                        Html.nothing
+
+                Nothing ->
+                    Html.nothing
+
+        privileged =
+            (localUser |> Maybe.map .privilege) == Just User.Privileged
     in
     [ Html.div
         [ HtmlA.id "lobby"
@@ -602,7 +709,7 @@ viewWithUsers wrap wrapSettings shared s viewContent model =
                     , castButton
                     ]
                 )
-            , Html.div [] [ Settings.view wrapSettings shared ]
+            , Html.div [ HtmlA.class "right" ] (chatButton ++ [ Settings.view wrapSettings shared ])
             ]
             :: HtmlK.ol [ HtmlA.class "notifications" ] notifications
             :: (model.lobbyAndConfigure
@@ -613,13 +720,96 @@ viewWithUsers wrap wrapSettings shared s viewContent model =
                         ]
                )
         )
+    , chatPanel
     , Invite.dialog
         wrap
         shared
         model.auth.claims.gc
         (lobby |> Maybe.andThen (.config >> .privacy >> .password))
+        (shared.discord && privileged)
         model.inviteDialogOpen
     ]
+
+
+{-| How many chat messages are kept (the same as the server keeps).
+-}
+chatHistoryLimit : Int
+chatHistoryLimit =
+    100
+
+
+chatMessagesId : String
+chatMessagesId =
+    "chat-messages"
+
+
+chatInputId : String
+chatInputId =
+    "chat-input"
+
+
+{-| Show the newest message. Has to wait for the view to have the message in it.
+-}
+scrollChatToEnd : (Msg -> msg) -> Cmd msg
+scrollChatToEnd wrap =
+    Dom.getViewportOf chatMessagesId
+        |> Task.andThen (\info -> Dom.setViewportOf chatMessagesId 0 info.scene.height)
+        |> Task.attempt (always (wrap NoOp))
+
+
+{-| The chat: the recent messages and a box to say something.
+-}
+viewChat : (Msg -> msg) -> Shared -> Model -> Lobby -> Html msg
+viewChat wrap shared model lobby =
+    let
+        viewMessage message =
+            ( String.fromInt message.id
+            , Html.li [ HtmlA.classList [ ( "own", message.user == model.auth.claims.uid ) ] ]
+                [ Html.span [ HtmlA.class "name" ] [ Html.text (username shared (Just lobby.users) message.user) ]
+                , Html.span [ HtmlA.class "text" ] [ Html.text message.text ]
+                ]
+            )
+
+        messages =
+            if lobby.messages |> List.isEmpty then
+                [ ( "empty", Html.li [ HtmlA.class "empty" ] [ Strings.ChatEmpty |> Lang.html shared ] ) ]
+
+            else
+                lobby.messages |> List.map viewMessage
+    in
+    Html.div [ HtmlA.id "chat", HtmlA.classList [ ( "open", model.chatOpen ) ] ]
+        [ Html.div [ HtmlA.class "chat-header" ]
+            [ Html.span [ HtmlA.class "title" ] [ Icon.chat |> Icon.view, Strings.ChatSetting |> Lang.html shared ]
+            , IconButton.view
+                (Icon.close |> Icon.view)
+                (Strings.Close |> Lang.string shared)
+                (ToggleChat |> wrap |> Just)
+            ]
+        , HtmlK.ol [ HtmlA.id chatMessagesId ] messages
+        , Html.form [ HtmlA.class "chat-form", HtmlE.onSubmit (wrap SendChat) ]
+            [ Html.input
+                [ HtmlA.id chatInputId
+                , HtmlA.type_ "text"
+                , HtmlA.value model.chatDraft
+                , HtmlA.maxlength 300
+                , HtmlA.autocomplete False
+                , HtmlA.placeholder (Strings.ChatPlaceholder |> Lang.string shared)
+                , HtmlA.attribute "aria-label" (Strings.ChatPlaceholder |> Lang.string shared)
+                , HtmlE.onInput (SetChatDraft >> wrap)
+
+                -- Typing must not trigger the game's keyboard shortcuts.
+                , HtmlE.stopPropagationOn "keydown" (Json.Decode.succeed ( wrap NoOp, True ))
+                ]
+                []
+            , Html.button
+                [ HtmlA.type_ "submit"
+                , HtmlA.class "chat-send"
+                , HtmlA.title (Strings.ChatSend |> Lang.string shared)
+                , HtmlA.disabled (model.chatDraft |> String.trim |> String.isEmpty)
+                ]
+                [ Icon.send |> Icon.view ]
+            ]
+        ]
 
 
 viewLobby : (Msg -> msg) -> Shared -> Auth -> Maybe User.Id -> ViewContent msg -> Time.Anchor -> LobbyAndConfigure -> List (Html msg)
@@ -878,6 +1068,12 @@ viewNotification wrap shared users animationState notification =
 
                         User.Kicked ->
                             Strings.UserKicked { username = username shared users id } |> Lang.html shared
+                    , Nothing
+                    )
+
+                DiscordInvitePosted id ->
+                    ( Icon.view Icon.discord
+                    , Strings.DiscordInvitePosted { username = username shared users id } |> Lang.html shared
                     , Nothing
                     )
 

@@ -84,8 +84,17 @@ urlRoot root route =
     let
         ( parts, fragment ) =
             partsAndFragment route
+
+        -- The start page under a base path is "/CAH/", not "/CAH": the trailing slash is where the page really is,
+        -- so links to it (invites) don't go through a redirect.
+        allParts =
+            if List.isEmpty parts && not (List.isEmpty BasePath.segments) then
+                BasePath.segments ++ [ "" ]
+
+            else
+                BasePath.segments ++ parts
     in
-    Url.Builder.custom root (BasePath.segments ++ parts) [] fragment
+    Url.Builder.custom root allParts [] fragment
 
 
 partsAndFragment : Route -> ( List String, Maybe String )

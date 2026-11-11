@@ -1178,6 +1178,43 @@ translate _ mdString =
         AudienceModeDescription ->
             [ Missing ]
 
+        -- Chat, Discord invites and the "one answer only" rule.
+        HouseRuleSingleAnswer ->
+            [ Text "Una sola risposta" ]
+
+        HouseRuleSingleAnswerDescription ->
+            [ Text "Le carte nere che richiedono due o tre risposte vengono escluse dalla partita." ]
+
+        ChatSetting ->
+            [ Text "Chat" ]
+
+        ChatSettingDescription ->
+            [ Text "Permetti a tutti nella partita di chattare tra loro." ]
+
+        ChatPlaceholder ->
+            [ Text "Scrivi qualcosa…" ]
+
+        ChatSend ->
+            [ Text "Invia" ]
+
+        ChatEmpty ->
+            [ Text "Ancora nessun messaggio. Saluta!" ]
+
+        DiscordPost ->
+            [ Text "Pubblica l'invito su Discord" ]
+
+        DiscordPostDescription ->
+            [ Text "Pubblica un link a questa partita nel canale Discord di questo server." ]
+
+        DiscordCopy ->
+            [ Text "Copia l'invito per Discord" ]
+
+        DiscordInviteText { url, gameCode } ->
+            [ Text "Vieni a giocare con me! Entra qui: ", Text url, Text " (codice partita: ", Text gameCode, Text ")" ]
+
+        DiscordInvitePosted { username } ->
+            [ Text username, Text " ha pubblicato un invito su Discord." ]
+
         StartGame ->
             [ Text "Inizia gioco" ]
 

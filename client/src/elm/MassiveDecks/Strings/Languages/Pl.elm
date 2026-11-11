@@ -1258,6 +1258,43 @@ translate maybeDeclCase mdString =
             , Text "dodać ich do gry."
             ]
 
+        -- Chat, Discord invites and the "one answer only" rule.
+        HouseRuleSingleAnswer ->
+            [ Text "Tylko jedna odpowiedź" ]
+
+        HouseRuleSingleAnswerDescription ->
+            [ Text "Czarne karty wymagające dwóch lub trzech odpowiedzi są usuwane z gry." ]
+
+        ChatSetting ->
+            [ Text "Czat" ]
+
+        ChatSettingDescription ->
+            [ Text "Pozwól wszystkim w grze rozmawiać ze sobą." ]
+
+        ChatPlaceholder ->
+            [ Text "Napisz coś…" ]
+
+        ChatSend ->
+            [ Text "Wyślij" ]
+
+        ChatEmpty ->
+            [ Text "Brak wiadomości. Przywitaj się!" ]
+
+        DiscordPost ->
+            [ Text "Opublikuj zaproszenie na Discordzie" ]
+
+        DiscordPostDescription ->
+            [ Text "Publikuje link do tej gry na kanale Discord tego serwera." ]
+
+        DiscordCopy ->
+            [ Text "Skopiuj zaproszenie na Discorda" ]
+
+        DiscordInviteText { url, gameCode } ->
+            [ Text "Zagraj ze mną! Dołącz tutaj: ", Text url, Text " (kod gry: ", Text gameCode, Text ")" ]
+
+        DiscordInvitePosted { username } ->
+            [ Text username, Text " publikuje zaproszenie na Discordzie." ]
+
         StartGame ->
             [ Text "Rozpocznij grę" ]
 

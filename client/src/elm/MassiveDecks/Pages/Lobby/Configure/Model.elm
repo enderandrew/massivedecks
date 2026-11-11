@@ -78,6 +78,7 @@ fake =
             , czarChoices = Nothing
             , winnersPick = Nothing
             , godIsDead = Nothing
+            , singleAnswer = Nothing
             }
         , stages =
             { mode = Rules.Soft
@@ -92,6 +93,7 @@ fake =
         { password = Nothing
         , public = False
         , audienceMode = False
+        , chat = False
         }
     , version = ""
     }

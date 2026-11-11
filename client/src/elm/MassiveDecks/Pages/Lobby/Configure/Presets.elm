@@ -38,6 +38,7 @@ fromConfig name config =
     , rules = config.rules
     , public = config.privacy.public
     , audienceMode = config.privacy.audienceMode
+    , chat = config.privacy.chat
     , decks = config.decks |> List.map .source
     }
 
@@ -72,7 +73,7 @@ patch scope preset config =
                         target =
                             { config
                                 | rules = preset.rules
-                                , privacy = { privacy | public = preset.public, audienceMode = preset.audienceMode }
+                                , privacy = { privacy | public = preset.public, audienceMode = preset.audienceMode, chat = preset.chat }
                             }
 
                         -- Remove from the end so earlier indices stay valid.

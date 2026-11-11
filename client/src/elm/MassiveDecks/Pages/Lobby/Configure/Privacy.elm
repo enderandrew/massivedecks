@@ -18,6 +18,7 @@ all setPasswordVisibility =
             [ public |> Configurable.wrap identity (.public >> Just) (\v p -> { p | public = v })
             , password setPasswordVisibility |> Configurable.wrap identity (.password >> Just) (\v p -> { p | password = v })
             , audienceMode |> Configurable.wrap identity (.audienceMode >> Just) (\v p -> { p | audienceMode = v })
+            , chat |> Configurable.wrap identity (.chat >> Just) (\v p -> { p | chat = v })
             ]
         }
 
@@ -54,4 +55,14 @@ audienceMode =
         , editor = Editor.bool Strings.AudienceMode
         , validator = Validator.none
         , messages = always [ Message.info Strings.AudienceModeDescription ]
+        }
+
+
+chat : Configurable Id Bool model msg
+chat =
+    Configurable.value
+        { id = Chat
+        , editor = Editor.bool Strings.ChatSetting
+        , validator = Validator.none
+        , messages = always [ Message.info Strings.ChatSettingDescription ]
         }

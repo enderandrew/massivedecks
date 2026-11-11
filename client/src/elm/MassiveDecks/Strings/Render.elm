@@ -221,6 +221,9 @@ enhanceHtml shared context mdString unenhanced =
         HouseRuleGodIsDead ->
             prefixed unenhanced Icon.users
 
+        HouseRuleSingleAnswer ->
+            prefixed unenhanced Icon.callCard
+
         RereadGames ->
             [ Html.blankA [ HtmlA.class "no-wrap", HtmlA.href "https://www.rereadgames.com/" ] unenhanced ]
 

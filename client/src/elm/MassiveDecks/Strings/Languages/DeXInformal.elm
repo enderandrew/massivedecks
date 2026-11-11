@@ -1194,6 +1194,43 @@ translate _ mdString =
             , Text "zu Spielern machen."
             ]
 
+        -- Chat, Discord invites and the "one answer only" rule.
+        HouseRuleSingleAnswer ->
+            [ Text "Nur eine Antwort" ]
+
+        HouseRuleSingleAnswerDescription ->
+            [ Text "Schwarze Karten, die zwei oder drei Antworten brauchen, werden aus dem Spiel genommen." ]
+
+        ChatSetting ->
+            [ Text "Chat" ]
+
+        ChatSettingDescription ->
+            [ Text "Alle im Spiel können miteinander chatten." ]
+
+        ChatPlaceholder ->
+            [ Text "Sag etwas…" ]
+
+        ChatSend ->
+            [ Text "Senden" ]
+
+        ChatEmpty ->
+            [ Text "Noch keine Nachrichten. Sag Hallo!" ]
+
+        DiscordPost ->
+            [ Text "Einladung auf Discord posten" ]
+
+        DiscordPostDescription ->
+            [ Text "Postet einen Link zu diesem Spiel im Discord-Kanal dieses Servers." ]
+
+        DiscordCopy ->
+            [ Text "Einladung für Discord kopieren" ]
+
+        DiscordInviteText { url, gameCode } ->
+            [ Text "Kommt, spielt mit! Hier beitreten: ", Text url, Text " (Spielcode: ", Text gameCode, Text ")" ]
+
+        DiscordInvitePosted { username } ->
+            [ Text username, Text " hat eine Einladung auf Discord gepostet." ]
+
         StartGame ->
             [ Text "Spiel starten" ]
 
@@ -1639,6 +1676,7 @@ translate _ mdString =
 
         French ->
             [ Text "Französisch" ]
+
 
 an : Maybe Int -> String
 an amount =

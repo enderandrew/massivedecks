@@ -1,6 +1,7 @@
 module MassiveDecks.Pages.Lobby.Model exposing
     ( Auth
     , Change(..)
+    , ChatMessage
     , Claims
     , Lobby
     , LobbyAndConfigure
@@ -49,6 +50,11 @@ type alias Model =
     , spectate : Spectate.Model
     , gameMenu : Menu.State
     , userMenu : Maybe User.Id
+    , chatOpen : Bool
+    , chatDraft : String
+
+    -- Messages that arrived while the chat was closed.
+    , chatUnread : Int
     }
 
 
@@ -66,6 +72,19 @@ type alias Lobby =
     , config : Configure.Config
     , game : Maybe Game.Model
     , errors : List GameStateError
+
+    -- The recent chat, oldest first.
+    , messages : List ChatMessage
+    }
+
+
+{-| Something someone said in the lobby's chat.
+-}
+type alias ChatMessage =
+    { id : Int
+    , user : User.Id
+    , text : String
+    , time : Int
     }
 
 
@@ -119,4 +138,5 @@ type NotificationMessage
     | UserDisconnected User.Id
     | UserJoined User.Id
     | UserLeft User.Id User.LeaveReason
+    | DiscordInvitePosted User.Id
     | Error MdError

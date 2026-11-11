@@ -1160,6 +1160,43 @@ translate _ mdString =
             , Text "transformá-los em jogadores."
             ]
 
+        -- Chat, Discord invites and the "one answer only" rule.
+        HouseRuleSingleAnswer ->
+            [ Text "Só uma resposta" ]
+
+        HouseRuleSingleAnswerDescription ->
+            [ Text "As cartas pretas que pedem duas ou três respostas ficam fora do jogo." ]
+
+        ChatSetting ->
+            [ Text "Chat" ]
+
+        ChatSettingDescription ->
+            [ Text "Permite que todos no jogo conversem entre si." ]
+
+        ChatPlaceholder ->
+            [ Text "Diga alguma coisa…" ]
+
+        ChatSend ->
+            [ Text "Enviar" ]
+
+        ChatEmpty ->
+            [ Text "Nenhuma mensagem ainda. Diga oi!" ]
+
+        DiscordPost ->
+            [ Text "Postar convite no Discord" ]
+
+        DiscordPostDescription ->
+            [ Text "Posta um link para este jogo no canal do Discord deste servidor." ]
+
+        DiscordCopy ->
+            [ Text "Copiar convite para o Discord" ]
+
+        DiscordInviteText { url, gameCode } ->
+            [ Text "Vem jogar comigo! Entre aqui: ", Text url, Text " (código do jogo: ", Text gameCode, Text ")" ]
+
+        DiscordInvitePosted { username } ->
+            [ Text username, Text " postou um convite no Discord." ]
+
         StartGame ->
             [ Text "Iniciar Jogo" ]
 

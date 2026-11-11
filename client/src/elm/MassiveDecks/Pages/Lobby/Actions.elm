@@ -4,6 +4,7 @@ module MassiveDecks.Pages.Lobby.Actions exposing
     , endGame
     , enforceTimeLimit
     , fill
+    , inviteToDiscord
     , judge
     , kick
     , leave
@@ -11,6 +12,7 @@ module MassiveDecks.Pages.Lobby.Actions exposing
     , pickCall
     , redraw
     , reveal
+    , sendChat
     , setPlayerAway
     , setPresence
     , setPrivilege
@@ -133,6 +135,16 @@ kick user =
 leave : Cmd msg
 leave =
     action "Leave" []
+
+
+sendChat : String -> Cmd msg
+sendChat message =
+    action "SendChat" [ ( "message", message |> Json.string ) ]
+
+
+inviteToDiscord : Cmd msg
+inviteToDiscord =
+    action "InviteToDiscord" []
 
 
 endGame : Cmd msg

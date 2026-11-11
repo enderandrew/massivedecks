@@ -6,10 +6,12 @@ type Id
     | Password
     | Public
     | AudienceMode
+    | Chat
 
 
 type alias Config =
     { password : Maybe String
     , public : Bool
     , audienceMode : Bool
+    , chat : Bool
     }

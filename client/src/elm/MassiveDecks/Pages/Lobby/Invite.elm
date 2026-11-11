@@ -1,6 +1,7 @@
 module MassiveDecks.Pages.Lobby.Invite exposing (button, dialog, overlay)
 
 import FontAwesome as Icon
+import FontAwesome.Brands as Icon
 import Html exposing (Html)
 import Html.Attributes as HtmlA
 import Html.Events as HtmlE
@@ -16,9 +17,9 @@ import MassiveDecks.Strings as Strings
 import MassiveDecks.Strings.Languages as Lang
 import MassiveDecks.Util.Html as Html
 import MassiveDecks.Util.Html.Events as HtmlE
+import QRCode
 import Ui.Card as Card
 import Ui.IconButton as IconButton
-import QRCode
 import Url exposing (Url)
 
 
@@ -34,11 +35,29 @@ button wrap shared =
 
 {-| A dialog overlay that displays information on how to invite people to the game.
 -}
-dialog : (Msg -> msg) -> Shared -> GameCode -> Maybe String -> Bool -> Html msg
-dialog wrap shared gameCode password open =
+dialog : (Msg -> msg) -> Shared -> GameCode -> Maybe String -> Bool -> Bool -> Html msg
+dialog wrap shared gameCode password canPostToDiscord open =
     let
         lobbyUrl =
             url shared gameCode
+
+        discordText =
+            Strings.DiscordInviteText { url = lobbyUrl, gameCode = GameCode.toString gameCode } |> Lang.string shared
+
+        postToDiscord =
+            if canPostToDiscord then
+                [ Html.button
+                    [ HtmlA.type_ "button"
+                    , HtmlA.class "discord-button"
+                    , HtmlA.id "discord-post"
+                    , HtmlA.title (Strings.DiscordPostDescription |> Lang.string shared)
+                    , InviteToDiscord |> wrap |> HtmlE.onClick
+                    ]
+                    [ Icon.discord |> Icon.view, Html.span [] [ Strings.DiscordPost |> Lang.html shared ] ]
+                ]
+
+            else
+                []
     in
     Html.div
         [ HtmlA.id "invite-dialog"
@@ -68,6 +87,28 @@ dialog wrap shared gameCode password open =
                     ]
                 )
                 [ Message.info Strings.InviteLinkHelp ]
+            , Html.div [ HtmlA.class "invite-discord" ]
+                (postToDiscord
+                    ++ [ Html.button
+                            [ HtmlA.type_ "button"
+                            , HtmlA.class "discord-button secondary"
+                            , HtmlA.id "discord-copy"
+                            , "discord-invite-text" |> Copy |> wrap |> HtmlE.onClick
+                            ]
+                            [ Icon.discord |> Icon.view, Html.span [] [ Strings.DiscordCopy |> Lang.html shared ] ]
+
+                       -- What the button above copies. Kept off-screen: the copy helper reads it from here.
+                       , Html.input
+                            [ HtmlA.readonly True
+                            , HtmlA.value discordText
+                            , HtmlA.id "discord-invite-text"
+                            , HtmlA.class "copy-source"
+                            , HtmlA.tabindex -1
+                            , HtmlA.attribute "aria-hidden" "true"
+                            ]
+                            []
+                       ]
+                )
             , Html.div [ HtmlA.class "invite-qr" ] [ lobbyUrl |> qr ]
             ]
         ]

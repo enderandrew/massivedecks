@@ -1145,6 +1145,43 @@ translate _ mdString =
             [ Text "Si se activa, todos los jugadores entrarán como espectadores, y tú eligirás si cambiarlos a jugadores."
             ]
 
+        -- Chat, Discord invites and the "one answer only" rule.
+        HouseRuleSingleAnswer ->
+            [ Text "Solo una respuesta" ]
+
+        HouseRuleSingleAnswerDescription ->
+            [ Text "Las cartas negras que piden dos o tres respuestas se quedan fuera de la partida." ]
+
+        ChatSetting ->
+            [ Text "Chat" ]
+
+        ChatSettingDescription ->
+            [ Text "Permite que todos en la partida chateen entre sí." ]
+
+        ChatPlaceholder ->
+            [ Text "Di algo…" ]
+
+        ChatSend ->
+            [ Text "Enviar" ]
+
+        ChatEmpty ->
+            [ Text "Aún no hay mensajes. ¡Saluda!" ]
+
+        DiscordPost ->
+            [ Text "Publicar invitación en Discord" ]
+
+        DiscordPostDescription ->
+            [ Text "Publica un enlace a esta partida en el canal de Discord de este servidor." ]
+
+        DiscordCopy ->
+            [ Text "Copiar invitación para Discord" ]
+
+        DiscordInviteText { url, gameCode } ->
+            [ Text "¡Ven a jugar conmigo! Únete aquí: ", Text url, Text " (código de la partida: ", Text gameCode, Text ")" ]
+
+        DiscordInvitePosted { username } ->
+            [ Text username, Text " ha publicado una invitación en Discord." ]
+
         StartGame ->
             [ Text "Empezar la partida" ]
 
@@ -1590,6 +1627,7 @@ translate _ mdString =
 
         French ->
             [ Text "Francés" ]
+
 
 raw : MdString -> Translation.Result never
 raw =

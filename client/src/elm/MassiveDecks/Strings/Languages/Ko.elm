@@ -1128,6 +1128,43 @@ translate _ mdString =
             , Text "플레이어로 할 수 있습니다."
             ]
 
+        -- Chat, Discord invites and the "one answer only" rule.
+        HouseRuleSingleAnswer ->
+            [ Text "답은 하나만" ]
+
+        HouseRuleSingleAnswerDescription ->
+            [ Text "답이 두 개나 세 개 필요한 검은 카드는 게임에서 제외됩니다." ]
+
+        ChatSetting ->
+            [ Text "채팅" ]
+
+        ChatSettingDescription ->
+            [ Text "게임에 있는 모든 사람이 서로 채팅할 수 있습니다." ]
+
+        ChatPlaceholder ->
+            [ Text "메시지 입력…" ]
+
+        ChatSend ->
+            [ Text "보내기" ]
+
+        ChatEmpty ->
+            [ Text "아직 메시지가 없습니다. 인사해 보세요!" ]
+
+        DiscordPost ->
+            [ Text "Discord에 초대 올리기" ]
+
+        DiscordPostDescription ->
+            [ Text "이 서버의 Discord 채널에 이 게임의 링크를 올립니다." ]
+
+        DiscordCopy ->
+            [ Text "Discord용 초대 복사" ]
+
+        DiscordInviteText { url, gameCode } ->
+            [ Text "같이 게임해요! 여기서 참가하세요: ", Text url, Text " (게임 코드: ", Text gameCode, Text ")" ]
+
+        DiscordInvitePosted { username } ->
+            [ Text username, Text " 님이 Discord에 초대를 올렸습니다." ]
+
         StartGame ->
             [ Text "게임 시작" ]
 
@@ -1572,6 +1609,7 @@ translate _ mdString =
 
         French ->
             [ Text "프랑스 국민" ]
+
 
 
 {- Private -}

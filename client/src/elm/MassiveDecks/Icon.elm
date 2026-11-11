@@ -139,6 +139,16 @@ invite =
     Icon.bullhorn
 
 
+chat : Icon WithoutId
+chat =
+    Icon.comments
+
+
+send : Icon WithoutId
+send =
+    Icon.paperPlane
+
+
 spectator : Icon WithoutId
 spectator =
     Icon.tv

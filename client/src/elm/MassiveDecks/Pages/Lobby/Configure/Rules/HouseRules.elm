@@ -14,6 +14,7 @@ import MassiveDecks.Pages.Lobby.Configure.Rules.HouseRules.NeverHaveIEver as Nev
 import MassiveDecks.Pages.Lobby.Configure.Rules.HouseRules.PackingHeat as PackingHeat
 import MassiveDecks.Pages.Lobby.Configure.Rules.HouseRules.Rando as Rando
 import MassiveDecks.Pages.Lobby.Configure.Rules.HouseRules.Reboot as Reboot
+import MassiveDecks.Pages.Lobby.Configure.Rules.HouseRules.SingleAnswer as SingleAnswer
 import MassiveDecks.Pages.Lobby.Configure.Rules.HouseRules.WinnersPick as WinnersPick
 import MassiveDecks.Strings as Strings
 
@@ -33,5 +34,6 @@ all wrap =
             , CzarChoices.all wrap |> Configurable.wrap CzarChoicesId (.czarChoices >> Just) (\v p -> { p | czarChoices = v })
             , WinnersPick.all |> Configurable.wrap WinnersPickId (.winnersPick >> Just) (\v p -> { p | winnersPick = v })
             , GodIsDead.all |> Configurable.wrap GodIsDeadId (.godIsDead >> Just) (\v p -> { p | godIsDead = v })
+            , SingleAnswer.all |> Configurable.wrap SingleAnswerId (.singleAnswer >> Just) (\v p -> { p | singleAnswer = v })
             ]
         }

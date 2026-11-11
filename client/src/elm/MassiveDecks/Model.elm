@@ -28,6 +28,9 @@ type alias Shared =
     , serverVersion : Maybe String
     , sources : Sources.Info
     , adverts : Adverts
+
+    -- If the server can post invites to a Discord channel.
+    , discord : Bool
     }
 
 

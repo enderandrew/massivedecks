@@ -1154,6 +1154,43 @@ translate _ mdString =
             , Text "jadikan mereka pemain."
             ]
 
+        -- Chat, Discord invites and the "one answer only" rule.
+        HouseRuleSingleAnswer ->
+            [ Text "Satu Jawaban Saja" ]
+
+        HouseRuleSingleAnswerDescription ->
+            [ Text "Kartu hitam yang membutuhkan dua atau tiga jawaban tidak dipakai dalam permainan." ]
+
+        ChatSetting ->
+            [ Text "Obrolan" ]
+
+        ChatSettingDescription ->
+            [ Text "Izinkan semua orang dalam permainan untuk saling mengobrol." ]
+
+        ChatPlaceholder ->
+            [ Text "Katakan sesuatu…" ]
+
+        ChatSend ->
+            [ Text "Kirim" ]
+
+        ChatEmpty ->
+            [ Text "Belum ada pesan. Sapa yang lain!" ]
+
+        DiscordPost ->
+            [ Text "Kirim undangan ke Discord" ]
+
+        DiscordPostDescription ->
+            [ Text "Mengirim tautan permainan ini ke kanal Discord server ini." ]
+
+        DiscordCopy ->
+            [ Text "Salin undangan untuk Discord" ]
+
+        DiscordInviteText { url, gameCode } ->
+            [ Text "Ayo main bareng! Gabung di sini: ", Text url, Text " (kode permainan: ", Text gameCode, Text ")" ]
+
+        DiscordInvitePosted { username } ->
+            [ Text username, Text " mengirim undangan ke Discord." ]
+
         StartGame ->
             [ Text "Mulai Permainan" ]
 

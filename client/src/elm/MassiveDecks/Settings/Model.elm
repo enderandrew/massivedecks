@@ -50,6 +50,7 @@ type alias Preset =
     , rules : Rules
     , public : Bool
     , audienceMode : Bool
+    , chat : Bool
     , decks : List Source.External
     }
 

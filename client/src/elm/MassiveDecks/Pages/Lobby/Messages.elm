@@ -33,4 +33,8 @@ type Msg
     | SetGameMenuState Menu.State
     | SetUserMenuState User.Id Menu.State
     | EndGame
+    | ToggleChat
+    | SetChatDraft String
+    | SendChat
+    | InviteToDiscord
     | NoOp

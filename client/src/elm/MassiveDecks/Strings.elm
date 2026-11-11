@@ -128,6 +128,8 @@ type MdString
     | HouseRuleWinnersPickDescription -- A description of the house rule where the winner of each round becomes the next czar.
     | HouseRuleGodIsDead -- The name of the house rule where there is no czar judging and everyone votes for the best play.
     | HouseRuleGodIsDeadDescription -- A description of the house rule where there is no czar judging and everyone votes for the best play.
+    | HouseRuleSingleAnswer -- The name of the house rule where calls needing more than one response are left out.
+    | HouseRuleSingleAnswerDescription -- A description of the house rule where calls needing more than one response are left out.
     | VoteInstruction -- Instruction to vote for the best play, but not your own.
     | VotedInstruction { voted : Int, total : Int } -- Shown after voting: the vote can still be changed, and how many have voted.
     | VoteForPlay -- The action of voting for the selected play.
@@ -358,6 +360,16 @@ type MdString
     | LobbyPasswordDescription -- A description of a password to stop random people entering your lobby.
     | AudienceMode -- A short label for a setting that means users can only play if a privileged user lets them.
     | AudienceModeDescription -- A description of the setting that means users can only play if a privileged user lets them.
+    | ChatSetting -- A short label for chat: the setting that turns it on, and the title of the chat itself.
+    | ChatSettingDescription -- A description of the setting that lets everyone in the game chat.
+    | ChatPlaceholder -- A prompt in the empty box where a chat message is typed.
+    | ChatSend -- A short description of the action of sending a chat message.
+    | ChatEmpty -- Shown in the chat when nobody has said anything yet.
+    | DiscordPost -- A short description of the action of posting an invite to the game in the server's Discord channel.
+    | DiscordPostDescription -- An explanation of what posting an invite to Discord does.
+    | DiscordCopy -- A short description of the action of copying an invite message to paste into Discord.
+    | DiscordInviteText { url : String, gameCode : String } -- The invite message copied for pasting into Discord.
+    | DiscordInvitePosted { username : String } -- A notification that the given user posted an invite to Discord.
     | StartGame -- A short description of the action of starting the game.
     | Public -- The name of the setting for making the lobby public.
     | PublicDescription -- A description of what the public setting does (makes the game visible in the lobby browser).
