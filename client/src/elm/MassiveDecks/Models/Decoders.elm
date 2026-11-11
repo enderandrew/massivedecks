@@ -10,10 +10,10 @@ module MassiveDecks.Models.Decoders exposing
     , language
     , lobbyState
     , lobbySummary
-    , presets
     , lobbyToken
     , mdError
     , part
+    , presets
     , privilege
     , remoteControlCommand
     , revealingRound
@@ -95,6 +95,7 @@ serverConfig =
         |> Json.required "version" Json.string
         |> Json.required "sources" sourceInfo
         |> Json.optional "adverts" adverts { manyDecks = False, atTheParty = False }
+        |> Json.optional "discord" Json.bool False
 
 
 builtInInfo : Json.Decoder BuiltIn.Info
@@ -221,11 +222,13 @@ presets =
 
 preset : Json.Decoder Settings.Preset
 preset =
-    Json.map5 Settings.Preset
+    Json.map6 Settings.Preset
         (Json.field "name" Json.string)
         (Json.field "rules" rules)
         (Json.field "public" Json.bool)
         (Json.field "audienceMode" Json.bool)
+        -- Presets saved before chat existed keep chat on.
+        (Json.maybe (Json.field "chat" Json.bool) |> Json.map (Maybe.withDefault True))
         (Json.field "decks" (Json.list externalSource))
 
 
@@ -342,6 +345,7 @@ lobby ld calls =
         |> Json.required "config" config
         |> Json.optional "game" (game ld calls |> Json.map (Game.emptyModel >> Just)) Nothing
         |> Json.optional "errors" (Json.list gameStateError) []
+        |> Json.optional "messages" (Json.list chatMessage) []
 
 
 game : Maybe LikeDetail -> Maybe (List Card.Call) -> Json.Decoder Game
@@ -372,6 +376,7 @@ privacyConfig =
         |> Json.optional "password" (Json.string |> Json.map Just) Nothing
         |> Json.optional "public" Json.bool False
         |> Json.optional "audienceMode" Json.bool False
+        |> Json.optional "chat" Json.bool False
 
 
 deckOrError : Json.Decoder DeckConfig.DeckOrError
@@ -476,6 +481,7 @@ houseRules =
         |> Json.optional "czarChoices" (czarChoices |> Json.map Just) Nothing
         |> Json.optional "winnersPick" (winnersPick |> Json.map Just) Nothing
         |> Json.optional "godIsDead" (godIsDead |> Json.map Just) Nothing
+        |> Json.optional "singleAnswer" (Json.succeed {} |> Json.map Just) Nothing
 
 
 comedyWriter : Json.Decoder Rules.ComedyWriter
@@ -797,6 +803,12 @@ eventByName name =
         "PrivilegeChanged" ->
             privilegeChanged
 
+        "ChatMessage" ->
+            Json.field "message" chatMessage |> Json.map (\m -> Events.ChatReceived { message = m })
+
+        "DiscordInviteSent" ->
+            Json.field "user" userId |> Json.map (\u -> Events.DiscordInviteSent { user = u })
+
         "Paused" ->
             gameEvent (Json.succeed Events.Paused)
 
@@ -991,6 +1003,15 @@ roundCall =
         |> Json.optional "call" (call |> Json.map Just) Nothing
         |> Json.optional "calls" (Json.list call |> Json.map Just) Nothing
         |> Json.andThen identity
+
+
+chatMessage : Json.Decoder Lobby.ChatMessage
+chatMessage =
+    Json.map4 Lobby.ChatMessage
+        (Json.field "id" Json.int)
+        (Json.field "user" userId)
+        (Json.field "text" Json.string)
+        (Json.field "time" Json.int)
 
 
 privilegeChanged : Json.Decoder Events.Event

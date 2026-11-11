@@ -72,6 +72,7 @@ config c =
             , Just ( "version", c.version |> Json.string )
             , ( "public", True |> Json.bool ) |> Maybe.justIf c.privacy.public
             , ( "audienceMode", True |> Json.bool ) |> Maybe.justIf c.privacy.audienceMode
+            , ( "chat", True |> Json.bool ) |> Maybe.justIf c.privacy.chat
             , c.privacy.password |> Maybe.map (\p -> ( "password", p |> Json.string ))
             ]
         )
@@ -126,6 +127,7 @@ houseRules h =
             , h.czarChoices |> Maybe.map (\c -> ( "czarChoices", czarChoices c ))
             , h.winnersPick |> Maybe.map (\w -> ( "winnersPick", winnersPick w ))
             , h.godIsDead |> Maybe.map (\_ -> ( "godIsDead", Json.object [] ))
+            , h.singleAnswer |> Maybe.map (\_ -> ( "singleAnswer", Json.object [] ))
             ]
         )
 
@@ -329,6 +331,7 @@ preset p =
         , ( "rules", rules p.rules )
         , ( "public", Json.bool p.public )
         , ( "audienceMode", Json.bool p.audienceMode )
+        , ( "chat", Json.bool p.chat )
         , ( "decks", Json.list source p.decks )
         ]
 

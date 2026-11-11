@@ -1,6 +1,7 @@
 module MassiveDecks.Game.Rules exposing
     ( ComedyWriter
     , CzarChoices
+    , GodIsDead
     , HappyEnding
     , HouseRules
     , NeverHaveIEver
@@ -8,11 +9,11 @@ module MassiveDecks.Game.Rules exposing
     , Rando
     , Reboot
     , Rules
+    , SingleAnswer
     , Stage
     , Stages
     , TimeLimitMode(..)
     , WinnersPick
-    , GodIsDead
     )
 
 {-| Game rules.
@@ -39,6 +40,7 @@ type alias HouseRules =
     , czarChoices : Maybe CzarChoices
     , winnersPick : Maybe WinnersPick
     , godIsDead : Maybe GodIsDead
+    , singleAnswer : Maybe SingleAnswer
     }
 
 
@@ -101,4 +103,10 @@ type alias WinnersPick =
 {-| No card czar judging: everyone plays and votes for the best play.
 -}
 type alias GodIsDead =
+    {}
+
+
+{-| Calls that need more than one response are left out of the game.
+-}
+type alias SingleAnswer =
     {}
