@@ -29,6 +29,7 @@
       // Ids for decks in the order they will be presented to the user.
       // The game will look for these in the directory given by basePath above, and will expect them to have the
       // .deck.json5 extension.
+      // These stay available in the deck browser, but new games don't start with them (see "defaults" below).
       decks: ["cah-base-en", "cah-base-ptbr"],
     },
 
@@ -44,10 +45,14 @@
       simultaneousConnections: 2,
     },
 
-    // Allows players to use decks from JSON Against Humanity
+    // Allows players to use decks in the JSON Against Humanity "compact" format.
     jsonAgainstHumanity: {
       aboutUrl: "https://github.com/crhallberg/json-against-humanity",
-      url: "https://raw.githubusercontent.com/crhallberg/json-against-humanity/v2.0/cah-all-compact.json",
+      // The decks, as a file on this server (relative to the server's working directory). These are the default
+      // cards for new games. Replace the file and restart the server to change them.
+      file: "decks/cah-cards-compact.json",
+      // Or, instead of a file, an address to download the decks from when the server starts:
+      // url: "https://raw.githubusercontent.com/crhallberg/json-against-humanity/v2.0/cah-all-compact.json",
     },
   },
 
@@ -57,14 +62,19 @@
     rules: {
       handSize: 10,
       scoreLimit: 25,
+      // House rules that are on when a game is created. The host can change them before starting.
       houseRules: {
-        // packingHeat: {},
-        // reboot: { cost: 1 },
-        // comedyWriter: { number: 300, exclusive: true },
+        packingHeat: {},
+        reboot: { cost: 1 },
+        // Blank cards players write themselves, shuffled in with the others ("exclusive" would mean only blanks).
+        comedyWriter: { number: 10, exclusive: false },
+        neverHaveIEver: {},
+        winnersPick: {},
         // rando: { number: 1 },
-        // neverHaveIEver: {},
         // happyEnding: {},
-        // winnersPick: {},
+        // godIsDead: {},
+        // Leave out the black cards that need two or three answers:
+        // singleAnswer: {},
       },
       stages: {
         timeLimitMode: "Soft",
@@ -85,7 +95,11 @@
     },
     public: false,
     audienceMode: false,
+    // If people can chat during the game. The host can turn it off for their game.
+    chat: true,
     decks: [
+      // Every deck in the JSON Against Humanity file above.
+      { source: "JAH", id: "*" },
       // {
       //   // A built-in deck.
       //   source: "BuiltIn",
@@ -106,6 +120,16 @@
       // },
     ],
   },
+
+  // Lets the host of a game post an invite to it in a Discord channel, from the game's invite dialog.
+  // The webhook is a secret (anyone with it can post to your channel), so you may prefer the environment variables
+  // MD_DISCORD_WEBHOOK_URL and MD_DISCORD_SITE_URL to writing it here. Both values are needed.
+  // discord: {
+  //   // In Discord: Edit Channel > Integrations > Webhooks > New Webhook > Copy Webhook URL.
+  //   webhookUrl: "https://discord.com/api/webhooks/...",
+  //   // The public address of the game, including the path it is served under.
+  //   siteUrl: "https://example.com/CAH/",
+  // },
 
   // Timeouts determine how long the server waits before taking certain actions.
   // These values are all ISO 8601 durations.
