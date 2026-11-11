@@ -1,0 +1,43 @@
+# Debian + Apache, in a subfolder
+
+Runs Massive Decks at `https://<your site>/CAH/` on Debian trixie, with the game server as a systemd service that
+restarts on its own, behind your existing Apache.
+
+## Install / update
+
+```sh
+git clone https://github.com/enderandrew/massivedecks.git
+sudo sh massivedecks/deployment/debian-apache/install.sh
+```
+
+Run the same script again to update: it pulls, rebuilds both halves and restarts the service. Your config and secret in
+`/etc/massivedecks/` are kept.
+
+## What it sets up
+
+| What | Where |
+| --- | --- |
+| Source and builds | `/opt/massivedecks/repo` (owned by the `massivedecks` user) |
+| Server config | `/etc/massivedecks/config.json5` (copied once from `server/config.json5`) |
+| Token secret | `/etc/massivedecks/secret.env` (made once, root only) |
+| Service | `massivedecks.service`; socket at `/run/massivedecks/server.sock` |
+| Saved presets | `/var/lib/massivedecks/presets.json` |
+| Apache | `/etc/apache2/conf-available/massivedecks.conf`, enabled with `a2enconf` |
+
+- Node.js 22 comes from NodeSource when the installed one is older (trixie ships 20; the server needs 22).
+- The server listens on a Unix socket, not a port, so it is only reachable through Apache.
+- The Apache conf applies to every site on the machine. To limit it to one site, paste it into that
+  `<VirtualHost *:443>` and run `a2disconf massivedecks`.
+
+## Another path
+
+`MD_BASE_PATH=/games/cah sudo -E sh install.sh`. The client is built for one path, so changing it means running the
+script again.
+
+## Useful commands
+
+```sh
+systemctl status massivedecks
+journalctl -u massivedecks -f
+sudo systemctl restart massivedecks     # after editing /etc/massivedecks/config.json5
+```

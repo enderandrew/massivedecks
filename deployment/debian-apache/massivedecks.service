@@ -1,0 +1,48 @@
+# Massive Decks game server.
+# Installed to /etc/systemd/system/massivedecks.service by install.sh.
+
+[Unit]
+Description=Massive Decks game server
+Documentation=https://github.com/enderandrew/massivedecks
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=massivedecks
+# The socket Apache talks to belongs to this group, so www-data can reach it.
+Group=www-data
+UMask=0007
+
+WorkingDirectory=/opt/massivedecks/repo/server
+ExecStart=/usr/bin/node dist/index.js
+
+# MD_SECRET lives here (made once by install.sh, readable by root only)
+EnvironmentFile=/etc/massivedecks/secret.env
+Environment=NODE_ENV=production
+Environment=MD_CONFIG_PATH=/etc/massivedecks/config.json5
+Environment=MD_PRESETS_PATH=/var/lib/massivedecks/presets.json
+
+# /run/massivedecks holds the socket, /var/lib/massivedecks the saved presets
+RuntimeDirectory=massivedecks
+RuntimeDirectoryMode=0750
+StateDirectory=massivedecks
+
+Restart=always
+RestartSec=3
+
+# Hardening: the server only needs its own folders and the network
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+
+[Install]
+WantedBy=multi-user.target
