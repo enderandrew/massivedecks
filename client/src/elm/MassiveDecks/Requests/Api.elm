@@ -1,8 +1,8 @@
 module MassiveDecks.Requests.Api exposing
     ( checkAlive
+    , deletePreset
     , joinLobby
     , lobbySummaries
-    , deletePreset
     , newLobby
     , presets
     , savePresets
@@ -12,6 +12,7 @@ module MassiveDecks.Requests.Api exposing
 import Http
 import Json.Decode as Json
 import Json.Encode
+import MassiveDecks.BasePath as BasePath
 import MassiveDecks.Card.Source.Model as Source
 import MassiveDecks.Error.Model as Error
 import MassiveDecks.Models.Decoders as Decoders
@@ -148,7 +149,7 @@ presetRequest msg token method path body =
 
 url : List String -> String
 url path =
-    Url.Builder.absolute ("api" :: path) []
+    Url.Builder.absolute (BasePath.segments ++ ("api" :: path)) []
 
 
 noError : Json.Decoder Never

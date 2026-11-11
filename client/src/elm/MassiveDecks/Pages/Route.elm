@@ -9,6 +9,7 @@ module MassiveDecks.Pages.Route exposing
 
 import Html
 import Html.Attributes as HtmlA
+import MassiveDecks.BasePath as BasePath
 import MassiveDecks.Pages.Lobby.Route as Lobby
 import MassiveDecks.Pages.Start.Route as Start
 import MassiveDecks.Pages.Unknown.Route as Unknown
@@ -55,7 +56,7 @@ fromUrl : Url -> Route
 fromUrl given =
     let
         parts =
-            given.path |> String.split "/" |> List.filter ((/=) "")
+            given.path |> String.split "/" |> List.filter ((/=) "") |> BasePath.strip
 
         fragment =
             given.fragment
@@ -84,7 +85,7 @@ urlRoot root route =
         ( parts, fragment ) =
             partsAndFragment route
     in
-    Url.Builder.custom root parts [] fragment
+    Url.Builder.custom root (BasePath.segments ++ parts) [] fragment
 
 
 partsAndFragment : Route -> ( List String, Maybe String )
