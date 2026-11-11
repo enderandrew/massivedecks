@@ -18,7 +18,7 @@ type Language
     | Id
     | Es
     | Ko
-
+    | Fr
 
 {-| It makes sense to apply the language and pass around the function, so we give that a nice name.
 These should only be used from views - otherwise we'll store translated text in the model, so if they change the
