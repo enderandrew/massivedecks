@@ -83,6 +83,7 @@ init flags url key =
             , key = key
             , origin = Url.origin url
             , settings = initialisedSettings
+
             -- The cards are English, so the interface defaults to English rather than following the browser.
             -- Players can still pick another language in the settings.
             , browserLanguage = Nothing
@@ -93,6 +94,7 @@ init flags url key =
             , serverVersion = Nothing
             , sources = { builtIn = Nothing, manyDecks = Nothing, jsonAgainstHumanity = Nothing }
             , adverts = { manyDecks = False, atTheParty = False }
+            , discord = False
             }
 
         ( page, pageCmd ) =
@@ -257,7 +259,7 @@ update msg model =
             in
             ( { model | shared = { oldShared | notifications = notifications } }, notificationsCmd )
 
-        UpdateServerConfig { serverVersion, sourceInfo, adverts } ->
+        UpdateServerConfig { serverVersion, sourceInfo, adverts, discord } ->
             let
                 oldShared =
                     model.shared
@@ -268,6 +270,7 @@ update msg model =
                         | serverVersion = Just serverVersion
                         , sources = sourceInfo
                         , adverts = adverts
+                        , discord = discord
                     }
               }
             , Cmd.none
