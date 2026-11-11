@@ -4,6 +4,7 @@
 @use "../_game";
 @use "lobby/_configure";
 @use "lobby/_invite";
+@use "lobby/_chat";
 @use "../cards/_colors" as card-colors;
 
 $top-bar-height: 4rem;

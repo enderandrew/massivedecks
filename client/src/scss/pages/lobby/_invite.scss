@@ -42,6 +42,55 @@
     }
   }
 
+  .invite-discord {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5em;
+    width: 100%;
+    margin: 0.75em 0;
+
+    // Read by the copy helper: there, but not shown.
+    .copy-source {
+      position: absolute;
+      left: -200vw;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+      pointer-events: none;
+    }
+  }
+
+  .discord-button {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6em;
+    padding: 0.65em 0.9em;
+    border: 2px solid colors.$discord;
+    border-radius: 0.75rem;
+    background: colors.$discord;
+    color: #ffffff;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+
+    &.secondary {
+      background: transparent;
+      color: colors.$text;
+    }
+
+    &:hover {
+      filter: brightness(1.1);
+    }
+
+    &:focus-visible {
+      outline: 2px solid colors.$text;
+      outline-offset: 2px;
+    }
+  }
+
   // The QR code needs a light background to scan.
   .invite-qr svg {
     display: block;

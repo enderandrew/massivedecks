@@ -1,0 +1,195 @@
+@use "../../_colors";
+
+// The button in the top bar, with a count of messages that arrived while the chat was closed.
+#chat-button {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  &.active {
+    color: colors.$primary;
+  }
+
+  .unread-count {
+    position: absolute;
+    top: 0.1em;
+    right: -0.1em;
+    min-width: 1.4em;
+    box-sizing: border-box;
+    padding: 0.1em 0.35em;
+    border-radius: 1em;
+    background: colors.$primary;
+    color: colors.$on-primary;
+    font-size: 0.7em;
+    font-weight: 700;
+    line-height: 1.2;
+    text-align: center;
+    pointer-events: none;
+  }
+}
+
+#top-bar .right {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+}
+
+// The chat itself: a panel in the bottom right corner, over the game.
+#chat {
+  display: none;
+  position: fixed;
+  right: 1em;
+  bottom: 1em;
+  z-index: 600;
+
+  width: 21em;
+  max-width: calc(100vw - 2em);
+  height: 26em;
+  max-height: calc(100vh - 6em);
+  box-sizing: border-box;
+
+  flex-direction: column;
+
+  border: 1px solid colors.$line-strong;
+  border-radius: 0.75em;
+  background: colors.$surface;
+  color: colors.$text;
+  box-shadow: 0 0.5em 2em rgba(0, 0, 0, 0.6);
+  overflow: hidden;
+
+  &.open {
+    display: flex;
+  }
+
+  .chat-header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.1em 0.25em 0.1em 0.9em;
+    border-bottom: 1px solid colors.$line;
+    background: colors.$surface-raised;
+
+    .title {
+      display: flex;
+      align-items: center;
+      gap: 0.5em;
+      font-weight: 700;
+    }
+  }
+
+  ol {
+    flex: 1 1 auto;
+    min-height: 0;
+    margin: 0;
+    padding: 0.6em 0.75em;
+    list-style: none;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+
+    display: flex;
+    flex-direction: column;
+    gap: 0.45em;
+  }
+
+  li {
+    max-width: 88%;
+    align-self: flex-start;
+    padding: 0.4em 0.65em;
+    border-radius: 0.75em 0.75em 0.75em 0.2em;
+    background: colors.$surface-raised;
+    overflow-wrap: anywhere;
+    line-height: 1.35;
+
+    .name {
+      display: block;
+      font-size: 0.75em;
+      font-weight: 700;
+      color: colors.$secondary;
+    }
+
+    &.own {
+      align-self: flex-end;
+      border-radius: 0.75em 0.75em 0.2em 0.75em;
+      background: colors.$primary-dark;
+      color: colors.$on-primary-dark;
+
+      .name {
+        display: none;
+      }
+    }
+
+    &.empty {
+      align-self: center;
+      max-width: none;
+      margin: auto 0;
+      background: none;
+      color: colors.$text-faint;
+      text-align: center;
+    }
+  }
+
+  .chat-form {
+    display: flex;
+    flex-direction: row;
+    gap: 0.4em;
+    padding: 0.5em;
+    border-top: 1px solid colors.$line;
+
+    input {
+      flex: 1 1 auto;
+      min-width: 0;
+      padding: 0.55em 0.75em;
+      border: 2px solid transparent;
+      border-radius: 0.75em;
+      background: colors.$surface-raised;
+      color: colors.$text;
+      font: inherit;
+
+      &::placeholder {
+        color: colors.$text-faint;
+      }
+
+      &:focus {
+        outline: none;
+        border-color: colors.$primary;
+      }
+    }
+
+    .chat-send {
+      flex: 0 0 auto;
+      width: 2.6em;
+      border: none;
+      border-radius: 0.75em;
+      background: colors.$primary;
+      color: colors.$on-primary;
+      font: inherit;
+      cursor: pointer;
+
+      &:disabled {
+        background: colors.$surface-raised;
+        color: colors.$text-faint;
+        cursor: default;
+      }
+
+      &:focus-visible {
+        outline: 2px solid colors.$text;
+        outline-offset: 2px;
+      }
+    }
+  }
+}
+
+// On a phone the chat is a sheet across the bottom of the screen.
+@media (max-width: 34em) {
+  #chat {
+    right: 0;
+    bottom: 0;
+    width: 100vw;
+    max-width: 100vw;
+    height: 60vh;
+    border-radius: 0.75em 0.75em 0 0;
+    border-width: 1px 0 0 0;
+  }
+}
