@@ -10,7 +10,7 @@ Contributors:
 
 import MassiveDecks.Card.Source.BuiltIn.Model as BuiltIn
 import MassiveDecks.Card.Source.Model as Source
-import MassiveDecks.Strings exposing (MdString(..), Noun(..), Quantity(..))
+import MassiveDecks.Strings exposing (MdString(..), Noun(..), Quantity(..), noun, nounMaybe, nounUnknownQuantity)
 import MassiveDecks.Strings.Languages.Model exposing (Language(..))
 import MassiveDecks.Strings.Translation as Translation
 import MassiveDecks.Strings.Translation.Model as Translation exposing (Result(..))
@@ -29,8 +29,6 @@ pack =
 
 {-| The French translation
 -}
-
-
 translate : Maybe never -> MdString -> List (Translation.Result never)
 translate _ mdString =
     case mdString of
@@ -1202,7 +1200,7 @@ translate _ mdString =
 
         SlotIndexExplanation ->
             [ Text "Combien de "
-            , ref (noun nounUnknownQuantity Response)
+            , ref (nounUnknownQuantity Response)
             , Text " seront nécessaires pour cet "
             , ref Blank
             , Text ". Cela vous permettra de répéter une même  "
@@ -1364,6 +1362,305 @@ translate _ mdString =
 
         French ->
             [ Text "Français" ]
+
+        -- Strings added in this fork (deck browser, presets, TV mode, God Is Dead).
+        AddAllDecks { count } ->
+            [ Text "Tout ajouter (", count |> String.fromInt |> Text, Text ")" ]
+
+        AddDeckShort ->
+            [ Text "Ajouter" ]
+
+        AdvanceRoundShort ->
+            [ Text "Round suivant" ]
+
+        ApplyPresetDecksOnly ->
+            [ Text "Ajouter les paquets seulement" ]
+
+        ApplyPresetWholeGame ->
+            [ Text "Tout appliquer" ]
+
+        BrowseDecks ->
+            [ Text "Parcourir les paquets" ]
+
+        ConfigurePresets ->
+            [ Text "Préréglages" ]
+
+        DeckBrowserDone ->
+            [ Text "Terminé" ]
+
+        DeckBrowserTitle ->
+            [ Text "Choisir les paquets" ]
+
+        DeckCardCounts { calls, responses } ->
+            [ calls |> String.fromInt |> Text
+            , Text
+                (if calls == 1 then
+                    " noire · "
+
+                 else
+                    " noires · "
+                )
+            , responses |> String.fromInt |> Text
+            , Text
+                (if responses == 1 then
+                    " blanche"
+
+                 else
+                    " blanches"
+                )
+            ]
+
+        DeckCount { count } ->
+            [ count |> String.fromInt |> Text
+            , Text
+                (if count == 1 then
+                    " paquet"
+
+                 else
+                    " paquets"
+                )
+            ]
+
+        DeckFilterAdded ->
+            [ Text "Dans cette partie" ]
+
+        DeckFilterAll ->
+            [ Text "Tous" ]
+
+        DeckFilterCommunity ->
+            [ Text "Communauté" ]
+
+        DeckFilterOfficial ->
+            [ Text "Officiels" ]
+
+        DeckInGame ->
+            [ Text "Ajouté" ]
+
+        DeletePreset ->
+            [ Text "Supprimer le préréglage" ]
+
+        GameReader { name } ->
+            [ Text name, Text " lit à voix haute" ]
+
+        HouseRuleGodIsDead ->
+            [ Text "Dieu est mort" ]
+
+        HouseRuleGodIsDeadDescription ->
+            [ Text "Il n'y a pas de "
+            , ref Czar
+            , Text " pour choisir le gagnant : tout le monde joue, puis tout le monde vote pour la meilleure réponse (mais pas la sienne). "
+            , Text "Les égalités sont départagées au hasard. Quelqu'un révèle quand même les réponses, pour qu'elles soient lues à voix haute."
+            ]
+
+        InvertDeckSelection ->
+            [ Text "Inverser la sélection" ]
+
+        JudgePlayShort ->
+            [ Text "Choisir le gagnant" ]
+
+        NoMatchingDecks ->
+            [ Text "Aucun paquet ne correspond." ]
+
+        NoPresets ->
+            [ Text "Aucun préréglage enregistré pour l'instant." ]
+
+        PickCallShort ->
+            [ Text "Choisir cette carte" ]
+
+        PointsShort { points } ->
+            [ Text
+                (if points == 1 then
+                    "pt"
+
+                 else
+                    "pts"
+                )
+            ]
+
+        PresetDeckCount { decks } ->
+            [ decks |> String.fromInt |> Text
+            , if decks == 1 then
+                Text " paquet"
+
+              else
+                Text " paquets"
+            ]
+
+        PresetNameLabel ->
+            [ Text "Nom du préréglage" ]
+
+        PresetNeedsSavedChanges ->
+            [ Text "Enregistrez ou annulez vos modifications avant d'appliquer un préréglage." ]
+
+        PresetsDescription ->
+            [ Text "Enregistrez les paramètres de cette partie (règles, limites de temps, confidentialité et paquets) comme préréglage pour les réutiliser plus tard. Les préréglages sont enregistrés sur ce serveur et partagés par tous ceux qui jouent ici. Les mots de passe ne sont jamais enregistrés." ]
+
+        PresetsUnavailable ->
+            [ Text "Impossible de joindre les préréglages du serveur. Voici ceux vus en dernier sur cet appareil." ]
+
+        SavePreset ->
+            [ Text "Enregistrer comme préréglage" ]
+
+        SearchDecks ->
+            [ Text "Rechercher des paquets" ]
+
+        StartTvGame ->
+            [ Text "Lancer sur la télé" ]
+
+        StartTvGameDescription ->
+            [ Text "Transformez cet appareil en écran partagé : il affiche le code de la partie, les cartes et les scores, pendant que chacun joue sur son téléphone." ]
+
+        SubmitPlayShort ->
+            [ Text "Jouer" ]
+
+        TvCzarJudging { name } ->
+            [ Text name, Text " choisit le gagnant" ]
+
+        TvCzarPicking { name } ->
+            [ Text name, Text " choisit une carte…" ]
+
+        TvEveryoneVotes ->
+            [ Text "Tout le monde vote" ]
+
+        TvFirstPlayerHostHint ->
+            [ Text "Le premier joueur à rejoindre mène la partie et la lance depuis son téléphone." ]
+
+        TvFirstTo { points } ->
+            [ Text "premier à ", points |> String.fromInt |> Text ]
+
+        TvGameName ->
+            [ Text "Partie télé" ]
+
+        TvGameOver ->
+            [ Text "Partie terminée" ]
+
+        TvHeadlineFriendship ->
+            [ Text "Brisez une amitié." ]
+
+        TvHeadlinePhone ->
+            [ Text "Sortez votre téléphone." ]
+
+        TvHostHint { name } ->
+            [ Text name, Text " mène la partie et la lance depuis son téléphone." ]
+
+        TvJoinInstruction { url } ->
+            [ Text "Allez sur ", Text url, Text " et entrez ce code :" ]
+
+        TvMode ->
+            [ Text "Mode télé" ]
+
+        TvModeDescription ->
+            [ Text "Utiliser cet écran comme écran télé partagé pour tout le monde." ]
+
+        TvPickAnswers ->
+            [ Text "Choisissez vos réponses" ]
+
+        TvPlaying { played, total } ->
+            [ played |> String.fromInt |> Text
+            , Text " sur "
+            , total |> String.fromInt |> Text
+            , Text
+                (if played > 1 then
+                    " ont joué"
+
+                 else
+                    " a joué"
+                )
+            ]
+
+        TvRevealing { name } ->
+            [ Text name, Text " les lit à voix haute" ]
+
+        TvRound { round } ->
+            [ Text "Round ", round |> String.fromInt |> Text ]
+
+        TvRoundWinner { name } ->
+            [ Text name, Text " remporte le point." ]
+
+        TvRoundWinnerLabel { round } ->
+            [ Text "Round ", round |> String.fromInt |> Text, Text " · Gagnant" ]
+
+        TvScanToJoin ->
+            [ Text "ou scannez pour rejoindre" ]
+
+        TvScores ->
+            [ Text "Scores" ]
+
+        TvStandings ->
+            [ Text "Classement" ]
+
+        TvStatusPlayed ->
+            [ Text "A joué" ]
+
+        TvStatusReading ->
+            [ Text "Lit à voix haute" ]
+
+        TvStatusThinking ->
+            [ Text "Réfléchit…" ]
+
+        TvStatusVoted ->
+            [ Text "A voté" ]
+
+        TvTheAnswers ->
+            [ Text "Les réponses" ]
+
+        TvTheVotes ->
+            [ Text "Les votes" ]
+
+        TvVoting { voted, total } ->
+            [ voted |> String.fromInt |> Text
+            , Text " sur "
+            , total |> String.fromInt |> Text
+            , Text
+                (if voted > 1 then
+                    " ont voté"
+
+                 else
+                    " a voté"
+                )
+            ]
+
+        TvWaitingForMore ->
+            [ Text "on attend les autres…" ]
+
+        TvWaitingForPlayers ->
+            [ Text "En attente de joueurs…" ]
+
+        VoteCount { votes } ->
+            [ votes |> String.fromInt |> Text
+            , if votes == 1 then
+                Text " vote"
+
+              else
+                Text " votes"
+            ]
+
+        VoteForPlay ->
+            [ Text "Voter pour cette réponse." ]
+
+        VoteForPlayShort ->
+            [ Text "Voter" ]
+
+        VoteInstruction ->
+            [ Text "Votez pour la meilleure réponse (pas la vôtre)." ]
+
+        VotedInstruction { voted, total } ->
+            [ Text "Vote enregistré. Vous pouvez le changer tant que tout le monde n'a pas voté ("
+            , voted |> String.fromInt |> Text
+            , Text " sur "
+            , total |> String.fromInt |> Text
+            , Text
+                (if voted > 1 then
+                    " ont voté)."
+
+                 else
+                    " a voté)."
+                )
+            ]
+
+        WriteCallShort ->
+            [ Text "Écrire la vôtre" ]
+
 
 
 {- Private -}
