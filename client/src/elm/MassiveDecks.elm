@@ -348,7 +348,16 @@ view model =
         title =
             case model.page of
                 Pages.Lobby m ->
-                    m.lobbyAndConfigure |> Maybe.map (\l -> l.lobby.config.name ++ " (" ++ (m.auth.claims.gc |> GameCode.toString) ++ ")")
+                    let
+                        -- Unread chat shows in the browser tab, so it's seen while playing in another tab.
+                        unread =
+                            if m.chatUnread > 0 then
+                                "(" ++ String.fromInt m.chatUnread ++ ") "
+
+                            else
+                                ""
+                    in
+                    m.lobbyAndConfigure |> Maybe.map (\l -> unread ++ l.lobby.config.name ++ " (" ++ (m.auth.claims.gc |> GameCode.toString) ++ ")")
 
                 _ ->
                     Nothing

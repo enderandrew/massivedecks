@@ -2,6 +2,7 @@ module Ui.Tabs exposing
     ( Model
     , TabModel
     , view
+    , viewWithLinks
     )
 
 {-| A row of pill buttons switching between sections.
@@ -35,7 +36,14 @@ type alias TabModel msg =
 {-| View a bar of tabs.
 -}
 view : Model id msg -> Html msg
-view { selected, change, ids, tab, equals } =
+view model =
+    viewWithLinks model []
+
+
+{-| View a bar of tabs, followed by buttons that go to other pages (which look the same as the tabs).
+-}
+viewWithLinks : Model id msg -> List (Html msg) -> Html msg
+viewWithLinks { selected, change, ids, tab, equals } links =
     let
         viewTab id =
             let
@@ -59,4 +67,4 @@ view { selected, change, ids, tab, equals } =
                 ]
                 ((icon |> Maybe.map List.singleton |> Maybe.withDefault []) ++ [ Html.span [] [ Html.text label ] ])
     in
-    Html.nav [ HtmlA.class "ui-tabs" ] (ids |> List.map viewTab)
+    Html.nav [ HtmlA.class "ui-tabs" ] ((ids |> List.map viewTab) ++ links)
