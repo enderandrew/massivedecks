@@ -193,3 +193,130 @@
     border-width: 1px 0 0 0;
   }
 }
+
+// Hosts can remove a message: the button shows on hover (always on touch screens).
+#chat li {
+  position: relative;
+
+  .chat-delete {
+    position: absolute;
+    top: -0.45em;
+    right: -0.45em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.7em;
+    height: 1.7em;
+    padding: 0;
+    border: 1px solid colors.$line-strong;
+    border-radius: 50%;
+    background: colors.$surface;
+    color: colors.$text-faint;
+    font-size: 0.75em;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.15s;
+
+    &:hover,
+    &:focus-visible {
+      color: colors.$primary;
+      opacity: 1;
+    }
+  }
+
+  &:hover .chat-delete,
+  &:focus-within .chat-delete {
+    opacity: 1;
+  }
+
+  @media (hover: none) {
+    .chat-delete {
+      opacity: 0.8;
+    }
+  }
+
+  &.muted:not(.own) {
+    opacity: 0.6;
+  }
+}
+
+#chat .chat-form input:disabled {
+  cursor: not-allowed;
+}
+
+// A pulse on the chat button while there are messages nobody has read.
+#chat-button.unread > button,
+#chat-button.unread > .ui-icon-button {
+  animation: chat-unread-pulse 1.6s ease-in-out 3;
+}
+
+@keyframes chat-unread-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.18);
+    color: colors.$primary;
+  }
+}
+
+// Spectators have no top bar: the chat button floats in the bottom right corner.
+#floating-chat {
+  position: fixed;
+  right: 1em;
+  bottom: 1em;
+  z-index: 550;
+  border-radius: 50%;
+  background: colors.$surface-raised;
+  box-shadow: 0 0.25em 1em rgba(0, 0, 0, 0.5);
+}
+
+// The TV shows the latest messages in the bottom right corner (free on its screens); they fade away.
+#tv-chat {
+  position: fixed;
+  right: 1.5vw;
+  // Above the row of scores along the bottom of the game screen.
+  bottom: 14vh;
+  z-index: 500;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.4em;
+  max-width: 30vw;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 1.6vw;
+  pointer-events: none;
+
+  li {
+    padding: 0.35em 0.7em;
+    border-radius: 0.6em;
+    background: rgba(0, 0, 0, 0.7);
+    color: #fff;
+    overflow-wrap: anywhere;
+    animation: tv-chat-fade 30s forwards;
+
+    .name {
+      margin-right: 0.4em;
+      font-weight: 700;
+      color: colors.$secondary;
+    }
+  }
+}
+
+@keyframes tv-chat-fade {
+  0% {
+    opacity: 0;
+    transform: translateY(0.5em);
+  }
+  3%,
+  85% {
+    opacity: 1;
+    transform: none;
+  }
+  100% {
+    opacity: 0;
+  }
+}

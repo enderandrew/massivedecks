@@ -474,8 +474,11 @@ md-select {
   overflow-x: auto;
   padding: 0.25rem 0 0.875rem;
 
-  button {
+  button,
+  a.ui-tab-link {
     flex: none;
+    box-sizing: border-box;
+    text-decoration: none;
     display: inline-flex;
     align-items: center;
     gap: 0.45em;
