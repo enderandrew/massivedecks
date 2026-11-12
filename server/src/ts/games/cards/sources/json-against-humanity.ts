@@ -1,6 +1,5 @@
-import { promises as fs } from "fs";
-
 import { AxiosRequestConfig, default as Axios } from "axios";
+import { promises as fs } from "fs";
 import JSON5 from "json5";
 
 import type * as Config from "../../../config.js";
@@ -203,7 +202,15 @@ export class MetaResolver implements Source.MetaResolver<JsonAgainstHumanity> {
     const packs: [string, Pack][] = Array.isArray(decks.packs)
       ? decks.packs.map((pack, index) => [index.toString(), pack])
       : Object.entries(decks.packs);
-    for (const [id, pack] of packs) {
+    // Two packs with the same name can't be told apart in the deck list: number the later ones.
+    const timesNamed = new Map<string, number>();
+    for (const [id, filePack] of packs) {
+      const times = (timesNamed.get(filePack.name) ?? 0) + 1;
+      timesNamed.set(filePack.name, times);
+      const pack =
+        times > 1
+          ? { ...filePack, name: `${filePack.name} (${times})` }
+          : filePack;
       this.decks.set(id, rawDeckToSummaryAndTemplates(decks, pack, id));
       this.packs.set(id, pack);
       protoOrder.push([id, pack]);

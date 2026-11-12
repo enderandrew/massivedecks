@@ -53,7 +53,9 @@ class VoteActions extends Actions.Implementation<
           Event.targetAll(VoteCast.of(auth.uid)),
           ...(decided.events ?? []),
         ],
-        ...(decided.timeouts !== undefined ? { timeouts: decided.timeouts } : {}),
+        ...(decided.timeouts !== undefined
+          ? { timeouts: decided.timeouts }
+          : {}),
       };
     } else {
       return {};

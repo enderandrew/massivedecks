@@ -1,6 +1,5 @@
-import { randomInt } from "node:crypto";
-
 import Hashids from "hashids";
+import { randomInt } from "node:crypto";
 
 /**
  * A unique code for a lobby to identify it.

@@ -66,7 +66,10 @@ export const tallyIfComplete = (
   lobby: Lobby.WithActiveGame,
 ): ConstrainedChange<Lobby.WithActiveGame> => {
   const round = lobby.game.round;
-  if (round.stage !== "Judging" || lobby.game.rules.houseRules.godIsDead === undefined) {
+  if (
+    round.stage !== "Judging" ||
+    lobby.game.rules.houseRules.godIsDead === undefined
+  ) {
     return {};
   }
   const judging = round as Round.Judging;

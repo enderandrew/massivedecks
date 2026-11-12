@@ -1,6 +1,8 @@
 import { promises as fs } from "fs";
 import * as path from "path";
 
+import * as Logging from "./logging.js";
+
 /**
  * Presets: saved lobby configurations shared by everyone using this server. The server doesn't interpret them beyond
  * checking their shape; the client applies them. They live in a JSON file so they survive restarts.
@@ -79,7 +81,14 @@ export class Store {
       }
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
-        throw error;
+        // A damaged file shouldn't stop the server: put it aside (so it isn't overwritten) and start empty.
+        const aside = `${file}.broken-${Date.now()}`;
+        Logging.logger.error(
+          `Couldn't read the presets in ${file}, moved it to ${aside} and starting with none: ${
+            error instanceof Error ? error.message : String(error)
+          }`,
+        );
+        await fs.rename(file, aside).catch(() => undefined);
       }
     }
     return new Store(file, presets);

@@ -275,7 +275,8 @@ async function main(): Promise<void> {
 
   app.use((error: Error, req: Request, res: Response, next: NextFunction) => {
     if (res.headersSent) {
-      next(error);
+      // Too late to send an error response: let Express close the connection.
+      return next(error);
     }
     if (error instanceof MassiveDecksError) {
       Logging.logger.warn("Bad request:", error.details());
@@ -294,7 +295,8 @@ async function main(): Promise<void> {
 
   app.use((error: Error, req: Request, res: Response, next: NextFunction) => {
     if (res.headersSent) {
-      next(error);
+      // Too late to send an error response: let Express close the connection.
+      return next(error);
     }
     res
       .status(HttpStatus.INTERNAL_SERVER_ERROR)

@@ -1,5 +1,5 @@
 import * as Discord from "../../discord.js";
-import { InvalidActionError } from "../../errors/validation.js";
+import { InvalidActionError, RefusedError } from "../../errors/validation.js";
 import * as Event from "../../event.js";
 import * as DiscordInviteSent from "../../events/lobby-event/discord-invite-sent.js";
 import type * as Lobby from "../../lobby.js";
@@ -34,14 +34,14 @@ class InviteToDiscordActions extends Actions.Implementation<
     }
     const user = lobby.users[auth.uid];
     if (user === undefined) {
-      throw new InvalidActionError("Only people in the game can invite.");
+      throw new RefusedError("Only people in the game can invite.");
     }
     const now = Date.now();
     if (
       lobby.lastDiscordInvite !== undefined &&
       now - lobby.lastDiscordInvite < Discord.inviteCooldown
     ) {
-      throw new InvalidActionError(
+      throw new RefusedError(
         "An invite was posted to Discord a moment ago. Try again in a minute.",
       );
     }

@@ -232,6 +232,30 @@ export const pullFromEnvironment = (config: Parsed): Parsed => {
     // Half set up is not set up.
     delete config.discord;
   }
+  // Keep games (and the deck cache) in PostgreSQL, so they survive a restart. By default this connects over the
+  // local socket as the user the server runs as, so no password is needed.
+  const database = process.env["MD_POSTGRES_DATABASE"];
+  if (database) {
+    const user = process.env["MD_POSTGRES_USER"];
+    const password = process.env["MD_POSTGRES_PASSWORD"];
+    const connection: PostgreSqlConnection = {
+      host: process.env["MD_POSTGRES_HOST"] || "/var/run/postgresql",
+      database,
+      ...(user ? { user } : {}),
+      ...(password ? { password } : {}),
+    };
+    config.storage = {
+      type: "PostgreSQL",
+      abandonedTime: config.storage.abandonedTime,
+      garbageCollectionFrequency: config.storage.garbageCollectionFrequency,
+      connection,
+    };
+    config.cache = {
+      type: "PostgreSQL",
+      checkAfter: config.cache.checkAfter,
+      connection,
+    };
+  }
   return config;
 };
 

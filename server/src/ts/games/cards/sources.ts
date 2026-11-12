@@ -1,6 +1,7 @@
 import type { Cache } from "../../cache.js";
 import type * as Config from "../../config.js";
 import { SourceNotFoundError } from "../../errors/action-execution-error.js";
+import * as Logging from "../../logging.js";
 import * as Util from "../../util.js";
 import * as Source from "./source.js";
 import * as BuiltIn from "./sources/builtIn.js";
@@ -9,14 +10,27 @@ import * as Generated from "./sources/generated.js";
 import * as JsonAgainstHumanity from "./sources/json-against-humanity.js";
 import * as ManyDecks from "./sources/many-decks.js";
 
+/**
+ * Load a source, if it is configured. A source that fails to load (a missing or broken deck file, a site that is
+ * down) is logged and left out, rather than stopping the whole server from starting.
+ */
 async function loadIfEnabled<Config, MetaResolver>(
+  name: string,
   config: Config | undefined,
   load: (value: Config) => Promise<MetaResolver>,
 ): Promise<MetaResolver | undefined> {
   if (config === undefined) {
     return undefined;
-  } else {
+  }
+  try {
     return await load(config);
+  } catch (error) {
+    Logging.logger.error(
+      `The ${name} deck source failed to load, so it is turned off until the server restarts: ${
+        error instanceof Error ? error.message : String(error)
+      }`,
+    );
+    return undefined;
   }
 }
 
@@ -52,11 +66,20 @@ export class Sources {
    * Replace the "every deck" marker in a list of default decks with the decks themselves.
    */
   public expandDefaults(decks: Source.External[]): Source.External[] {
-    return decks.flatMap((deck) =>
-      deck.source === "JAH" && deck.id === JsonAgainstHumanity.everyDeck
-        ? this.jsonAgainstHumanity?.all() ?? []
-        : [deck],
-    );
+    return decks.flatMap((deck) => {
+      if (this.metaResolverIfConfigured(deck) === undefined) {
+        // The source is off (or failed to load): new games would fail to start with this deck in them.
+        Logging.logger.warn(
+          `Leaving out the default deck ${JSON.stringify(
+            deck,
+          )}: its source isn't available.`,
+        );
+        return [];
+      }
+      return deck.source === "JAH" && deck.id === JsonAgainstHumanity.everyDeck
+        ? (this.jsonAgainstHumanity as JsonAgainstHumanity.MetaResolver).all()
+        : [deck];
+    });
   }
 
   public clientInfo(): ClientInfo {
@@ -149,9 +172,13 @@ export class Sources {
   public static async from(config: Config.Sources): Promise<Sources> {
     const [builtInMeta, manyDecksMeta, jsonAgainstHumanityMeta] =
       await Promise.all([
-        loadIfEnabled(config.builtIn, BuiltIn.load),
-        loadIfEnabled(config.manyDecks, ManyDecks.load),
-        loadIfEnabled(config.jsonAgainstHumanity, JsonAgainstHumanity.load),
+        loadIfEnabled("built-in", config.builtIn, BuiltIn.load),
+        loadIfEnabled("Many Decks", config.manyDecks, ManyDecks.load),
+        loadIfEnabled(
+          "JSON Against Humanity",
+          config.jsonAgainstHumanity,
+          JsonAgainstHumanity.load,
+        ),
       ]);
     return new Sources(builtInMeta, manyDecksMeta, jsonAgainstHumanityMeta);
   }
