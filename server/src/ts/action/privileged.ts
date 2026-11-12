@@ -4,9 +4,11 @@ import type * as Lobby from "../lobby.js";
 import type * as Token from "../user/token.js";
 import * as Actions from "./actions.js";
 import * as Configure from "./privileged/configure.js";
+import * as DeleteChatMessage from "./privileged/delete-chat-message.js";
 import * as EndGame from "./privileged/end-game.js";
 import * as InviteToDiscord from "./privileged/invite-to-discord.js";
 import * as Kick from "./privileged/kick.js";
+import * as SetChatMuted from "./privileged/set-chat-muted.js";
 import * as SetPlayerAway from "./privileged/set-player-away.js";
 import * as SetPrivilege from "./privileged/set-privilege.js";
 import * as StartGame from "./privileged/start-game.js";
@@ -21,7 +23,9 @@ export type Privileged =
   | SetPrivilege.SetPrivilege
   | Kick.Kick
   | EndGame.EndGame
-  | InviteToDiscord.InviteToDiscord;
+  | InviteToDiscord.InviteToDiscord
+  | DeleteChatMessage.DeleteChatMessage
+  | SetChatMuted.SetChatMuted;
 
 class PrivilegedActions extends Actions.Group<
   Action,
@@ -38,6 +42,8 @@ class PrivilegedActions extends Actions.Group<
       Kick.actions,
       EndGame.actions,
       InviteToDiscord.actions,
+      DeleteChatMessage.actions,
+      SetChatMuted.actions,
     );
   }
 

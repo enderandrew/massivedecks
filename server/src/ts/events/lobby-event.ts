@@ -1,4 +1,6 @@
 import type { ChatMessage } from "./lobby-event/chat-message.js";
+import type { ChatMessageDeleted } from "./lobby-event/chat-message-deleted.js";
+import type { ChatMuteChanged } from "./lobby-event/chat-mute-changed.js";
 import type { Configured } from "./lobby-event/configured.js";
 import type { ConnectionChanged } from "./lobby-event/connection-changed.js";
 import type { DiscordInviteSent } from "./lobby-event/discord-invite-sent.js";
@@ -15,4 +17,6 @@ export type LobbyEvent =
   | UserRoleChanged
   | ErrorEncountered
   | ChatMessage
+  | ChatMessageDeleted
+  | ChatMuteChanged
   | DiscordInviteSent;

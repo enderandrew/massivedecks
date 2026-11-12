@@ -31,6 +31,10 @@ export interface Lobby {
    * When an invite to this lobby was last posted to Discord.
    */
   lastDiscordInvite?: number;
+  /**
+   * Users a host has stopped from sending chat messages.
+   */
+  chatMuted?: User.Id[];
 }
 
 export const fromJSON = (object: Lobby): Lobby =>
@@ -62,6 +66,7 @@ export interface Public {
   game?: Game.Public;
   errors?: Errors.Details[];
   messages?: Chat.Message[];
+  chatMuted?: User.Id[];
 }
 
 /**
@@ -185,6 +190,9 @@ export const censor = (lobby: Lobby): Public => ({
   lobby.messages !== undefined &&
   lobby.messages.length > 0
     ? { messages: lobby.messages }
+    : {}),
+  ...(lobby.chatMuted !== undefined && lobby.chatMuted.length > 0
+    ? { chatMuted: lobby.chatMuted }
     : {}),
 });
 

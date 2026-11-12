@@ -180,7 +180,12 @@ class ConfigureActions extends Actions.Implementation<
       lobby.config,
       validated,
     );
+    const chatWasOn = lobby.config.chat;
     lobby.config = result;
+    if (chatWasOn && !result.chat) {
+      // Turning chat off clears it: turning it back on later shouldn't bring old messages back.
+      delete lobby.messages;
+    }
     const testVersion: TestOperation = {
       op: "test",
       path: "/version",

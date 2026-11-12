@@ -39,6 +39,9 @@ class SendChatActions extends Actions.Implementation<
     if (user === undefined || user.presence !== "Joined") {
       throw new RefusedError("Only people in the game can chat.");
     }
+    if (lobby.chatMuted?.includes(auth.uid)) {
+      throw new RefusedError("A host has muted you in the chat.");
+    }
     const text = Chat.clean(action.message);
     if (text === undefined) {
       // Nothing but whitespace: nothing to say.

@@ -33,6 +33,12 @@ export const Schema = {
           $ref: "#/definitions/InviteToDiscord",
         },
         {
+          $ref: "#/definitions/DeleteChatMessage",
+        },
+        {
+          $ref: "#/definitions/SetChatMuted",
+        },
+        {
           $ref: "#/definitions/SetPresence",
         },
         {
@@ -500,6 +506,41 @@ export const Schema = {
         },
       },
       required: ["action"],
+      type: "object",
+    },
+    DeleteChatMessage: {
+      additionalProperties: false,
+      description: "A privileged user removes a message from the chat.",
+      properties: {
+        action: {
+          enum: ["DeleteChatMessage"],
+          type: "string",
+        },
+        id: {
+          minimum: 0,
+          type: "integer",
+        },
+      },
+      required: ["action", "id"],
+      type: "object",
+    },
+    SetChatMuted: {
+      additionalProperties: false,
+      description:
+        "A privileged user stops (or lets again) someone sending chat messages.",
+      properties: {
+        action: {
+          enum: ["SetChatMuted"],
+          type: "string",
+        },
+        user: {
+          $ref: "#/definitions/Id",
+        },
+        muted: {
+          type: "boolean",
+        },
+      },
+      required: ["action", "user", "muted"],
       type: "object",
     },
     SingleAnswer: {

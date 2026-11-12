@@ -21,6 +21,7 @@ import {
   NotAuthenticatedError,
 } from "./errors/authentication.js";
 import { UsernameAlreadyInUseError } from "./errors/registration.js";
+import { RefusedError } from "./errors/validation.js";
 import * as Event from "./event.js";
 import * as PresenceChanged from "./events/lobby-event/presence-changed.js";
 import * as Player from "./games/player.js";
@@ -28,6 +29,7 @@ import * as Change from "./lobby/change.js";
 import type { GameCode } from "./lobby/game-code.js";
 import * as Logging from "./logging.js";
 import * as Presets from "./presets.js";
+import { clientAddress, RateLimiter } from "./rate-limit.js";
 import * as ServerState from "./server-state.js";
 import * as Timeout from "./timeout.js";
 import * as UserDisconnect from "./timeout/user-disconnect.js";
@@ -97,6 +99,32 @@ async function main(): Promise<void> {
 
   app.get("/api/version", async (req, res) => res.json(config.version));
 
+  // For monitoring (and install.sh): answers 200 if the server and its storage are working.
+  app.get("/api/health", async (req, res) => {
+    try {
+      await state.store.id();
+      res.json({
+        status: "ok",
+        version: config.version,
+        storage: config.storage.type,
+        uptime: Math.round(process.uptime()),
+      });
+    } catch (error) {
+      Logging.logger.error("Health check failed:", error);
+      res
+        .status(HttpStatus.SERVICE_UNAVAILABLE)
+        .json({ status: "error", version: config.version });
+    }
+  });
+
+  // One address can make a few games, and try to join a lot, but not endlessly.
+  const gameCreation = new RateLimiter(10, 10 * 60 * 1000);
+  const gameJoining = new RateLimiter(30, 60 * 1000);
+  setInterval(() => {
+    gameCreation.prune();
+    gameJoining.prune();
+  }, 10 * 60 * 1000).unref();
+
   app.get("/api/config", async (req, res) =>
     res.json({
       version: config.version,
@@ -116,6 +144,11 @@ async function main(): Promise<void> {
   });
 
   app.post("/api/games", async (req, res) => {
+    if (!gameCreation.allow(clientAddress(req))) {
+      throw new RefusedError(
+        "Too many new games from your address. Try again in a few minutes.",
+      );
+    }
     const { gameCode, token, tasks } = await state.store.newLobby(
       CreateLobby.validate(req.body),
       config.secret,
@@ -151,6 +184,11 @@ async function main(): Promise<void> {
   });
 
   app.post("/api/games/:gameCode", async (req, res) => {
+    if (!gameJoining.allow(clientAddress(req))) {
+      throw new RefusedError(
+        "Too many attempts to join games. Wait a minute and try again.",
+      );
+    }
     const gameCode: GameCode = req.params.gameCode;
 
     const registration = RegisterUser.validate(req.body);
