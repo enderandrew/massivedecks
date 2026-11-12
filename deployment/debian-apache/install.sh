@@ -10,6 +10,9 @@
 #   MD_RESET_CONFIG=1  replace /etc/massivedecks/config.json5 with the one from the repository
 #                      (the old one is kept next to it as a dated .bak). Needed to pick up new
 #                      defaults after an update; your secret and Discord settings are not touched.
+#   MD_POSTGRES=1      keep games in a local PostgreSQL database, so they survive restarts and
+#                      updates (without it, every restart ends the games in progress). Only
+#                      needed once: after that, updates keep using the database.
 set -eu
 
 REPO="${MD_REPO:-https://github.com/enderandrew/massivedecks.git}"
@@ -85,6 +88,21 @@ if [ ! -f /etc/massivedecks/secret.env ]; then
   umask 022
   echo "Wrote /etc/massivedecks/secret.env"
 fi
+if [ "${MD_POSTGRES:-0}" = 1 ]; then
+  say "PostgreSQL"
+  apt-get install -y -q postgresql
+  systemctl enable --now postgresql >/dev/null
+  # The server logs in over the local socket as its own system user ("peer" login): no password.
+  runuser -u postgres -- psql -qtAc "SELECT 1 FROM pg_roles WHERE rolname='massivedecks'" | grep -q 1 ||
+    runuser -u postgres -- createuser massivedecks
+  runuser -u postgres -- psql -qtAc "SELECT 1 FROM pg_database WHERE datname='massivedecks'" | grep -q 1 ||
+    runuser -u postgres -- createdb -O massivedecks massivedecks
+  if ! grep -q "^MD_POSTGRES_DATABASE=" /etc/massivedecks/secret.env; then
+    printf '\n# Games are kept in this PostgreSQL database (remove the line to go back to memory).\nMD_POSTGRES_DATABASE=massivedecks\n' \
+      >> /etc/massivedecks/secret.env
+  fi
+  echo "Games are kept in the massivedecks database."
+fi
 if ! grep -q "MD_DISCORD" /etc/massivedecks/secret.env; then
   cat >> /etc/massivedecks/secret.env <<'EOF'
 
@@ -103,8 +121,38 @@ systemctl restart massivedecks
 
 say "Apache"
 sed "s|/CAH|$BASE_PATH|g" "$HERE/massivedecks-apache.conf" > /etc/apache2/conf-available/massivedecks.conf
-a2enmod -q proxy proxy_http headers >/dev/null
-a2enconf -q massivedecks >/dev/null
+# Enable a module unless Apache already loads it. a2enmod refuses to work when
+# mods-enabled holds real files instead of its usual symlinks, so fall back to
+# linking the module's files in directly.
+ensure_mod() {
+  name="$1"
+  if apache2ctl -M 2>/dev/null | grep -q "^ *${name}_module "; then
+    echo "module $name: already loaded"
+    return
+  fi
+  if a2enmod -q "$name" >/dev/null 2>&1; then
+    echo "module $name: enabled"
+    return
+  fi
+  for ext in load conf; do
+    src="/etc/apache2/mods-available/$name.$ext"
+    dst="/etc/apache2/mods-enabled/$name.$ext"
+    if [ -f "$src" ] && [ ! -e "$dst" ]; then
+      ln -s "../mods-available/$name.$ext" "$dst"
+    fi
+  done
+  echo "module $name: linked by hand"
+}
+ensure_mod proxy
+ensure_mod proxy_http
+ensure_mod headers
+ensure_mod alias
+ensure_mod dir
+
+if [ ! -e /etc/apache2/conf-enabled/massivedecks.conf ]; then
+  a2enconf -q massivedecks >/dev/null 2>&1 ||
+    ln -s ../conf-available/massivedecks.conf /etc/apache2/conf-enabled/massivedecks.conf
+fi
 apache2ctl configtest
 systemctl reload apache2
 

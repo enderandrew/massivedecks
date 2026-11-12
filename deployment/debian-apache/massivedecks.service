@@ -4,7 +4,7 @@
 [Unit]
 Description=Massive Decks game server
 Documentation=https://github.com/enderandrew/massivedecks
-After=network-online.target
+After=network-online.target postgresql.service
 Wants=network-online.target
 
 [Service]

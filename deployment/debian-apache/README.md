@@ -40,6 +40,20 @@ sudo MD_RESET_CONFIG=1 sh massivedecks/deployment/debian-apache/install.sh
 
 The old file is kept beside it as a dated `.bak`.
 
+## Keeping games through restarts
+
+By default games live in the server's memory, so every restart (including the one at the end of each update) ends
+the games in progress. To keep them in a local PostgreSQL database instead, run the install once with:
+
+```sh
+sudo MD_POSTGRES=1 sh massivedecks/deployment/debian-apache/install.sh
+```
+
+It installs PostgreSQL, makes a `massivedecks` database that the service logs in to over the local socket (no
+password), and adds `MD_POSTGRES_DATABASE=massivedecks` to `/etc/massivedecks/secret.env`. Later updates keep using
+it. Remove that line and restart to go back to memory. (For a database elsewhere, also set `MD_POSTGRES_HOST`,
+`MD_POSTGRES_USER` and `MD_POSTGRES_PASSWORD` there.)
+
 ## Discord invites
 
 The host of a game can post an invite to a Discord channel from the invite dialog. In Discord, make a webhook for the
@@ -56,7 +70,8 @@ and `sudo systemctl restart massivedecks`. Without these, the dialog still has "
 ## The default cards
 
 New games start with every deck in `server/decks/cah-cards-compact.json` (JSON Against Humanity "compact" format).
-Replace that file and restart the service to change the cards.
+Replace that file and restart the service to change the cards. If the file is missing or damaged, the server logs
+the error and starts without those decks (the built-in and Many Decks sources still work).
 
 ## Another path
 
