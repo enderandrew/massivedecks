@@ -67,7 +67,8 @@
         packingHeat: {},
         reboot: { cost: 1 },
         // Blank cards players write themselves, shuffled in with the others ("exclusive" would mean only blanks).
-        comedyWriter: { number: 10, exclusive: false },
+        // 40 among the ~1,900 default white cards: a few turn up in most games.
+        comedyWriter: { number: 40, exclusive: false },
         neverHaveIEver: {},
         winnersPick: {},
         // rando: { number: 1 },
