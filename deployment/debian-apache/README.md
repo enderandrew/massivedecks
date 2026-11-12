@@ -84,4 +84,8 @@ script again.
 systemctl status massivedecks
 journalctl -u massivedecks -f
 sudo systemctl restart massivedecks     # after editing /etc/massivedecks/config.json5
+curl https://example.com/CAH/api/health # {"status":"ok",...} while it's working (503 if not)
 ```
+
+One address can create 10 games per 10 minutes and make 30 join attempts a minute; past that the server asks
+them to wait.

@@ -159,7 +159,10 @@ systemctl reload apache2
 say "Checking"
 sleep 2
 systemctl --no-pager --lines=0 status massivedecks || true
-code=$(curl -s -o /dev/null -w '%{http_code}' -X POST --unix-socket /run/massivedecks/server.sock \
-  -H 'Content-Type: application/json' -d '{}' http://localhost/api/games || true)
-echo "Game server answered HTTP $code (400 is good: it rejected an empty game)."
+health=$(curl -s --unix-socket /run/massivedecks/server.sock http://localhost/api/health || true)
+case "$health" in
+  *'"status":"ok"'*) echo "Game server is healthy: $health" ;;
+  *) echo "WARNING: the game server isn't answering properly (${health:-no answer})." >&2
+     echo "         See: journalctl -u massivedecks -n 50" >&2 ;;
+esac
 echo "Done: open https://<your site>$BASE_PATH/"
