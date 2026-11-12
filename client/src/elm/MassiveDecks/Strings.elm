@@ -483,6 +483,7 @@ type MdString
     | UnprivilegedError -- An error where the user doesn't have the privileges to perform the action they are trying to do.
     | GameNotStartedError -- An error where the game hasn't started and the user tries to do something that needs to be done in a game.
     | InvalidActionError { reason : String } -- An error where the client has sent an error the server doesn't accept.
+    | RefusedError { reason : String } -- The server won't do something right now (e.g: chatting too fast); the reason comes from the server.
     | AuthenticationError -- A short title for an error where the user can't authenticate.
     | IncorrectIssuerError -- An error where the user tries to authenticate using credentials that are out of date.
     | InvalidAuthenticationError -- An error where the user tries to authenticate using credentials that are corrupted.

@@ -1078,7 +1078,12 @@ viewNotification wrap shared users animationState notification =
                     )
 
                 Error mdError ->
-                    ( Icon.view Icon.bug
+                    ( case mdError of
+                        MdError.ActionExecution (MdError.Refused _) ->
+                            Icon.view Icon.info
+
+                        _ ->
+                            Icon.view Icon.bug
                     , MdError.describe mdError |> Lang.html shared
                     , Just "error"
                     )

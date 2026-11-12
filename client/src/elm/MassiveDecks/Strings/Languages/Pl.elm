@@ -1687,6 +1687,9 @@ translate maybeDeclCase mdString =
         GameNotStartedError ->
             [ Text "Aby to zrobić, gra musi być rozpoczęta." ]
 
+        RefusedError { reason } ->
+            [ Text reason ]
+
         InvalidActionError { reason } ->
             [ Text "Serwer nie zrozumiał zapytania klienta. Szczegóły: ", Text reason ]
 

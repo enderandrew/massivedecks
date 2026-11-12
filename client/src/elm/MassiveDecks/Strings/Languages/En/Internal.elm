@@ -1553,6 +1553,9 @@ translate _ mdString =
         GameNotStartedError ->
             [ Text "The game needs to started to do that." ]
 
+        RefusedError { reason } ->
+            [ Text reason ]
+
         InvalidActionError { reason } ->
             [ Text "The server didn't understand a request from the client. Details: ", Text reason ]
 

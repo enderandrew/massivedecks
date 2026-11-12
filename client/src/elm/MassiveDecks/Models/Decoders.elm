@@ -1464,6 +1464,10 @@ mdErrorByName name =
         "InvalidAction" ->
             invalidActionError |> Json.map MdError.ActionExecution
 
+        "Refused" ->
+            Json.field "reason" Json.string
+                |> Json.map (\r -> MdError.Refused { reason = r } |> MdError.ActionExecution)
+
         _ ->
             unknownValue "error" name
 

@@ -32,6 +32,7 @@ type ActionExecutionError
     | Unprivileged
     | GameNotStarted
     | InvalidAction { reason : String }
+    | Refused { reason : String }
 
 
 type AuthenticationError
@@ -98,6 +99,9 @@ describe error =
 
                 InvalidAction { reason } ->
                     Strings.InvalidActionError { reason = reason }
+
+                Refused { reason } ->
+                    Strings.RefusedError { reason = reason }
 
         Authentication ae ->
             case ae of

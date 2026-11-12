@@ -1530,6 +1530,9 @@ translate _ mdString =
         GameNotStartedError ->
             [ Text "게임이 시작되어야 그것을 할 수 있습니다." ]
 
+        RefusedError { reason } ->
+            [ Text reason ]
+
         InvalidActionError { reason } ->
             [ Text "서버가 클라이언트의 요청을 이해하지 못했습니다. 자세한 정보:", Text reason ]
 
