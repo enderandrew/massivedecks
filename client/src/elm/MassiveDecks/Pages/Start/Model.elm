@@ -20,7 +20,7 @@ type alias Model =
     , lobbies : LobbyBrowser.Model
     , name : String
     , gameCode : Maybe GameCode
-    , newLobbyRequest : HttpData Never Lobby.Auth
+    , newLobbyRequest : HttpData MdError Lobby.Auth
     , joinLobbyRequest : HttpData MdError Lobby.Auth
     , password : Maybe String
     , overlay : Maybe MdString

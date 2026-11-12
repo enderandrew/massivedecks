@@ -346,6 +346,7 @@ lobby ld calls =
         |> Json.optional "game" (game ld calls |> Json.map (Game.emptyModel >> Just)) Nothing
         |> Json.optional "errors" (Json.list gameStateError) []
         |> Json.optional "messages" (Json.list chatMessage) []
+        |> Json.optional "chatMuted" (Json.list userId) []
 
 
 game : Maybe LikeDetail -> Maybe (List Card.Call) -> Json.Decoder Game
@@ -808,6 +809,14 @@ eventByName name =
 
         "DiscordInviteSent" ->
             Json.field "user" userId |> Json.map (\u -> Events.DiscordInviteSent { user = u })
+
+        "ChatMessageDeleted" ->
+            Json.field "id" Json.int |> Json.map (\i -> Events.ChatMessageDeleted { id = i })
+
+        "ChatMuteChanged" ->
+            Json.map2 (\u -> \m -> Events.ChatMuteChanged { user = u, muted = m })
+                (Json.field "user" userId)
+                (Json.field "muted" Json.bool)
 
         "Paused" ->
             gameEvent (Json.succeed Events.Paused)

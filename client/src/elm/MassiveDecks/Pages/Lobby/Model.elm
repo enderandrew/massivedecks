@@ -75,6 +75,9 @@ type alias Lobby =
 
     -- The recent chat, oldest first.
     , messages : List ChatMessage
+
+    -- Users a host has stopped from chatting.
+    , chatMuted : List User.Id
     }
 
 
@@ -139,4 +142,5 @@ type NotificationMessage
     | UserJoined User.Id
     | UserLeft User.Id User.LeaveReason
     | DiscordInvitePosted User.Id
+    | ChatMuteChanged User.Id Bool
     | Error MdError

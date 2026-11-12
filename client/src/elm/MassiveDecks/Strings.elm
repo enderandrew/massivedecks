@@ -365,6 +365,16 @@ type MdString
     | ChatPlaceholder -- A prompt in the empty box where a chat message is typed.
     | ChatSend -- A short description of the action of sending a chat message.
     | ChatEmpty -- Shown in the chat when nobody has said anything yet.
+    | GenerateCards -- A link to the site's card generator, where people make images of their own cards.
+    | Rando -- A link to the site's "Rando" page (a name, not translated).
+    | ChatDeleteMessage -- The action of a host removing a message from the chat.
+    | ChatMute -- The action of a host stopping a user from sending chat messages.
+    | ChatUnmute -- The action of a host letting a muted user send chat messages again.
+    | UserChatMuted { username : String } -- A notification that a host muted the given user in the chat.
+    | UserChatUnmuted { username : String } -- A notification that a host let the given user chat again.
+    | ChatMutedPlaceholder -- Shown in the chat's message box when a host has muted the user.
+    | ChatNotification { username : String, message : String } -- A browser notification for a chat message: who said it and what.
+    | HouseRulePackingHeatSingleAnswerNote -- A note that "Packing Heat" does nothing while the "One Answer Only" rule is on.
     | DiscordPost -- A short description of the action of posting an invite to the game in the server's Discord channel.
     | DiscordPostDescription -- An explanation of what posting an invite to Discord does.
     | DiscordCopy -- A short description of the action of copying an invite message to paste into Discord.

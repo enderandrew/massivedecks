@@ -39,6 +39,8 @@ import MassiveDecks.Game.Time as Time
 import MassiveDecks.Icon as Icon
 import MassiveDecks.Model exposing (..)
 import MassiveDecks.Models.MdError as MdError
+import MassiveDecks.Notifications as Notifications
+import MassiveDecks.Notifications.Model as Notifications
 import MassiveDecks.Pages.Lobby.Actions as Actions
 import MassiveDecks.Pages.Lobby.Configure as Configure
 import MassiveDecks.Pages.Lobby.Configure.Model as Configure
@@ -349,18 +351,56 @@ updateInternal wrap shared msg model =
 
                                 updated =
                                     model |> updatedLobby (\l -> { l | messages = messages })
+
+                                -- Someone else said something while the page is in the background.
+                                notify =
+                                    if message.user /= model.auth.claims.uid && shared.notifications.visibility /= Notifications.Visible then
+                                        Notifications.notify shared
+                                            { title = Strings.ChatSetting
+                                            , body = Strings.ChatNotification { username = username shared (Just lobby.users) message.user, message = message.text }
+                                            }
+
+                                    else
+                                        Cmd.none
                             in
                             ( Stay { updated | chatUnread = unread }
                             , shared
-                            , if model.chatOpen then
-                                scrollChatToEnd wrap
+                            , Cmd.batch
+                                [ if model.chatOpen then
+                                    scrollChatToEnd wrap
 
-                              else
-                                Cmd.none
+                                  else
+                                    Cmd.none
+                                , notify
+                                ]
                             )
 
                         Events.DiscordInviteSent { user } ->
                             addNotification wrap shared (DiscordInvitePosted user) model
+
+                        Events.ChatMessageDeleted { id } ->
+                            ( model |> updatedLobby (\l -> { l | messages = l.messages |> List.filter (\m -> m.id /= id) }) |> Stay
+                            , shared
+                            , Cmd.none
+                            )
+
+                        Events.ChatMuteChanged { user, muted } ->
+                            let
+                                updated =
+                                    model
+                                        |> updatedLobby
+                                            (\l ->
+                                                { l
+                                                    | chatMuted =
+                                                        if muted then
+                                                            user :: (l.chatMuted |> List.filter ((/=) user))
+
+                                                        else
+                                                            l.chatMuted |> List.filter ((/=) user)
+                                                }
+                                            )
+                            in
+                            addNotification wrap shared (ChatMuteChanged user muted) updated
 
                         Events.UserRoleChanged { user, role, hand } ->
                             let
@@ -526,6 +566,12 @@ updateInternal wrap shared msg model =
             else
                 ( Stay { model | chatDraft = "" }, shared, Actions.sendChat (model.chatDraft |> String.trim) )
 
+        DeleteChatMessage id ->
+            ( Stay model, shared, Actions.deleteChatMessage id )
+
+        SetChatMuted user muted ->
+            ( Stay { model | userMenu = Nothing }, shared, Actions.setChatMuted user muted )
+
         InviteToDiscord ->
             ( Stay model, shared, Actions.inviteToDiscord )
 
@@ -564,10 +610,22 @@ view wrap wrapSettings changePage shared model =
             viewWithUsers wrap wrapSettings shared s viewContent model
 
         Spectate ->
-            Spectate.view (SpectateMsg >> wrap) (GameMsg >> wrap) changePage shared model
+            let
+                ( chatButton, chatPanel ) =
+                    chatControls wrap shared model
+
+                -- The spectator view has no top bar, so the chat button floats in a corner.
+                floatingChat =
+                    if shared.remoteMode || List.isEmpty chatButton then
+                        []
+
+                    else
+                        [ Html.div [ HtmlA.id "floating-chat" ] chatButton, chatPanel ]
+            in
+            Spectate.view (SpectateMsg >> wrap) (GameMsg >> wrap) changePage shared model ++ floatingChat
 
         Tv ->
-            Tv.view (GameMsg >> wrap) shared model
+            Tv.view (GameMsg >> wrap) shared model ++ [ viewChatFeed shared model ]
 
 
 
@@ -645,49 +703,8 @@ viewWithUsers wrap wrapSettings shared s viewContent model =
         audienceMode =
             lobby |> Maybe.map (.config >> .privacy >> .audienceMode) |> Maybe.withDefault True
 
-        chatEnabled =
-            lobby |> Maybe.map (.config >> .privacy >> .chat) |> Maybe.withDefault False
-
-        chatButton =
-            if chatEnabled then
-                [ Html.div
-                    [ HtmlA.id "chat-button"
-                    , HtmlA.classList [ ( "unread", model.chatUnread > 0 ), ( "active", model.chatOpen ) ]
-                    ]
-                    [ IconButton.view
-                        (Icon.chat |> Icon.styled [ Icon.lg ] |> Icon.view)
-                        (Strings.ChatSetting |> Lang.string shared)
-                        (ToggleChat |> wrap |> Just)
-                    , if model.chatUnread > 0 then
-                        Html.span [ HtmlA.class "unread-count" ]
-                            [ Html.text
-                                (if model.chatUnread > 99 then
-                                    "99+"
-
-                                 else
-                                    String.fromInt model.chatUnread
-                                )
-                            ]
-
-                      else
-                        Html.nothing
-                    ]
-                ]
-
-            else
-                []
-
-        chatPanel =
-            case lobby of
-                Just l ->
-                    if chatEnabled then
-                        viewChat wrap shared model l
-
-                    else
-                        Html.nothing
-
-                Nothing ->
-                    Html.nothing
+        ( chatButton, chatPanel ) =
+            chatControls wrap shared model
 
         privileged =
             (localUser |> Maybe.map .privilege) == Just User.Privileged
@@ -731,6 +748,89 @@ viewWithUsers wrap wrapSettings shared s viewContent model =
     ]
 
 
+{-| The chat button for the top bar (empty if chat is off) and the chat panel.
+-}
+chatControls : (Msg -> msg) -> Shared -> Model -> ( List (Html msg), Html msg )
+chatControls wrap shared model =
+    let
+        lobby =
+            model.lobbyAndConfigure |> Maybe.map .lobby
+
+        chatEnabled =
+            lobby |> Maybe.map (.config >> .privacy >> .chat) |> Maybe.withDefault False
+
+        chatButton =
+            if chatEnabled then
+                [ Html.div
+                    [ HtmlA.id "chat-button"
+                    , HtmlA.classList [ ( "unread", model.chatUnread > 0 ), ( "active", model.chatOpen ) ]
+                    ]
+                    [ IconButton.view
+                        (Icon.chat |> Icon.styled [ Icon.lg ] |> Icon.view)
+                        (Strings.ChatSetting |> Lang.string shared)
+                        (ToggleChat |> wrap |> Just)
+                    , if model.chatUnread > 0 then
+                        Html.span [ HtmlA.class "unread-count" ]
+                            [ Html.text
+                                (if model.chatUnread > 99 then
+                                    "99+"
+
+                                 else
+                                    String.fromInt model.chatUnread
+                                )
+                            ]
+
+                      else
+                        Html.nothing
+                    ]
+                ]
+
+            else
+                []
+
+        chatPanel =
+            case lobby of
+                Just l ->
+                    if chatEnabled then
+                        viewChat wrap shared model l
+
+                    else
+                        Html.nothing
+
+                Nothing ->
+                    Html.nothing
+    in
+    ( chatButton, chatPanel )
+
+
+{-| The chat on a TV: nobody types there, so it shows only the latest messages, which fade away after a while.
+-}
+viewChatFeed : Shared -> Model -> Html msg
+viewChatFeed shared model =
+    case model.lobbyAndConfigure |> Maybe.map .lobby of
+        Just lobby ->
+            if lobby.config.privacy.chat then
+                let
+                    viewMessage message =
+                        ( String.fromInt message.id
+                        , Html.li []
+                            [ Html.span [ HtmlA.class "name" ] [ Html.text (username shared (Just lobby.users) message.user) ]
+                            , Html.span [ HtmlA.class "text" ] [ Html.text message.text ]
+                            ]
+                        )
+
+                    latest =
+                        lobby.messages |> List.reverse |> List.take 5 |> List.reverse
+                in
+                HtmlK.ol [ HtmlA.id "tv-chat" ] (latest |> List.map viewMessage)
+
+            else
+                Html.nothing
+
+        Nothing ->
+            Html.nothing
+
+
 {-| How many chat messages are kept (the same as the server keeps).
 -}
 chatHistoryLimit : Int
@@ -762,13 +862,49 @@ scrollChatToEnd wrap =
 viewChat : (Msg -> msg) -> Shared -> Model -> Lobby -> Html msg
 viewChat wrap shared model lobby =
     let
+        localId =
+            model.auth.claims.uid
+
+        privileged =
+            (lobby.users |> Dict.get localId |> Maybe.map .privilege) == Just User.Privileged
+
+        muted =
+            lobby.chatMuted |> List.member localId
+
+        deleteButton message =
+            if privileged then
+                Html.button
+                    [ HtmlA.type_ "button"
+                    , HtmlA.class "chat-delete"
+                    , HtmlA.title (Strings.ChatDeleteMessage |> Lang.string shared)
+                    , HtmlA.attribute "aria-label" (Strings.ChatDeleteMessage |> Lang.string shared)
+                    , message.id |> DeleteChatMessage |> wrap |> HtmlE.onClick
+                    ]
+                    [ Icon.deleteMessage |> Icon.view ]
+
+            else
+                Html.nothing
+
         viewMessage message =
             ( String.fromInt message.id
-            , Html.li [ HtmlA.classList [ ( "own", message.user == model.auth.claims.uid ) ] ]
+            , Html.li
+                [ HtmlA.classList
+                    [ ( "own", message.user == localId )
+                    , ( "muted", lobby.chatMuted |> List.member message.user )
+                    ]
+                ]
                 [ Html.span [ HtmlA.class "name" ] [ Html.text (username shared (Just lobby.users) message.user) ]
                 , Html.span [ HtmlA.class "text" ] [ Html.text message.text ]
+                , deleteButton message
                 ]
             )
+
+        placeholder =
+            if muted then
+                Strings.ChatMutedPlaceholder
+
+            else
+                Strings.ChatPlaceholder
 
         messages =
             if lobby.messages |> List.isEmpty then
@@ -793,8 +929,9 @@ viewChat wrap shared model lobby =
                 , HtmlA.value model.chatDraft
                 , HtmlA.maxlength 300
                 , HtmlA.autocomplete False
-                , HtmlA.placeholder (Strings.ChatPlaceholder |> Lang.string shared)
-                , HtmlA.attribute "aria-label" (Strings.ChatPlaceholder |> Lang.string shared)
+                , HtmlA.placeholder (placeholder |> Lang.string shared)
+                , HtmlA.attribute "aria-label" (placeholder |> Lang.string shared)
+                , HtmlA.disabled muted
                 , HtmlE.onInput (SetChatDraft >> wrap)
 
                 -- Typing must not trigger the game's keyboard shortcuts.
@@ -805,7 +942,7 @@ viewChat wrap shared model lobby =
                 [ HtmlA.type_ "submit"
                 , HtmlA.class "chat-send"
                 , HtmlA.title (Strings.ChatSend |> Lang.string shared)
-                , HtmlA.disabled (model.chatDraft |> String.trim |> String.isEmpty)
+                , HtmlA.disabled (muted || (model.chatDraft |> String.trim |> String.isEmpty))
                 ]
                 [ Icon.send |> Icon.view ]
             ]
@@ -944,11 +1081,22 @@ applyConfigured wrap change oldModel =
             in
             case updatedConfig of
                 Ok ( config, model ) ->
-                    { oldModel
-                        | lobbyAndConfigure =
-                            Just { lobby = { lobby | config = config }, configure = model }
-                    }
-                        |> Stay
+                    if lobby.config.privacy.chat && not config.privacy.chat then
+                        -- Chat turned off: the server forgets the messages, so do the same.
+                        { oldModel
+                            | lobbyAndConfigure =
+                                Just { lobby = { lobby | config = config, messages = [] }, configure = model }
+                            , chatOpen = False
+                            , chatUnread = 0
+                        }
+                            |> Stay
+
+                    else
+                        { oldModel
+                            | lobbyAndConfigure =
+                                Just { lobby = { lobby | config = config }, configure = model }
+                        }
+                            |> Stay
 
                 Err error ->
                     error |> ConfigError
@@ -1077,6 +1225,19 @@ viewNotification wrap shared users animationState notification =
                     , Nothing
                     )
 
+                ChatMuteChanged id muted ->
+                    if muted then
+                        ( Icon.view Icon.chatMute
+                        , Strings.UserChatMuted { username = username shared users id } |> Lang.html shared
+                        , Nothing
+                        )
+
+                    else
+                        ( Icon.view Icon.chatUnmute
+                        , Strings.UserChatUnmuted { username = username shared users id } |> Lang.html shared
+                        , Nothing
+                        )
+
                 Error mdError ->
                     ( case mdError of
                         MdError.ActionExecution (MdError.Refused _) ->
@@ -1138,15 +1299,19 @@ viewUsers wrap shared localUserId lobby openUserMenu game =
         ( active, inactive ) =
             users |> Dict.toList |> List.partition (\( _, user ) -> user.presence == User.Joined)
 
+        -- Who is muted, if there is a chat to be muted in.
+        chat =
+            lobby.chatMuted |> Maybe.justIf lobby.config.privacy.chat
+
         activeGroups =
-            active |> byRole |> List.map (viewRoleGroup wrap shared localUserId localUserPrivilege lobby.config.privacy.audienceMode openUserMenu game)
+            active |> byRole |> List.map (viewRoleGroup wrap shared localUserId localUserPrivilege lobby.config.privacy.audienceMode openUserMenu game chat)
 
         inactiveGroup =
             if List.isEmpty inactive then
                 []
 
             else
-                [ viewUserListGroup wrap shared localUserId localUserPrivilege lobby.config.privacy.audienceMode openUserMenu game ( ( "left", Strings.Left ), inactive ) ]
+                [ viewUserListGroup wrap shared localUserId localUserPrivilege lobby.config.privacy.audienceMode openUserMenu game chat ( ( "left", Strings.Left ), inactive ) ]
 
         groups =
             List.concat [ activeGroups, inactiveGroup ]
@@ -1154,8 +1319,8 @@ viewUsers wrap shared localUserId lobby openUserMenu game =
     Card.view [ HtmlA.id "users" ] [ Html.div [ HtmlA.class "collapsible" ] [ HtmlK.ol [] groups ] ]
 
 
-viewRoleGroup : (Msg -> msg) -> Shared -> User.Id -> User.Privilege -> Bool -> Maybe User.Id -> Maybe Game -> ( User.Role, List ( User.Id, User ) ) -> ( String, Html msg )
-viewRoleGroup wrap shared localUserId localUserPrivilege audienceMode openUserMenu game ( role, users ) =
+viewRoleGroup : (Msg -> msg) -> Shared -> User.Id -> User.Privilege -> Bool -> Maybe User.Id -> Maybe Game -> Maybe (List User.Id) -> ( User.Role, List ( User.Id, User ) ) -> ( String, Html msg )
+viewRoleGroup wrap shared localUserId localUserPrivilege audienceMode openUserMenu game chat ( role, users ) =
     let
         idAndDescription =
             case role of
@@ -1165,15 +1330,15 @@ viewRoleGroup wrap shared localUserId localUserPrivilege audienceMode openUserMe
                 User.Spectator ->
                     ( "spectators", Strings.Spectators )
     in
-    viewUserListGroup wrap shared localUserId localUserPrivilege audienceMode openUserMenu game ( idAndDescription, users )
+    viewUserListGroup wrap shared localUserId localUserPrivilege audienceMode openUserMenu game chat ( idAndDescription, users )
 
 
-viewUserListGroup : (Msg -> msg) -> Shared -> User.Id -> User.Privilege -> Bool -> Maybe User.Id -> Maybe Game -> ( ( String, MdString ), List ( User.Id, User ) ) -> ( String, Html msg )
-viewUserListGroup wrap shared localUserId localUserPrivilege audienceMode openUserMenu game ( ( id, description ), users ) =
+viewUserListGroup : (Msg -> msg) -> Shared -> User.Id -> User.Privilege -> Bool -> Maybe User.Id -> Maybe Game -> Maybe (List User.Id) -> ( ( String, MdString ), List ( User.Id, User ) ) -> ( String, Html msg )
+viewUserListGroup wrap shared localUserId localUserPrivilege audienceMode openUserMenu game chat ( ( id, description ), users ) =
     ( id
     , Html.li [ HtmlA.class id ]
         [ Html.span [] [ description |> Lang.html shared ]
-        , HtmlK.ol [] (users |> List.map (viewUser wrap shared localUserId localUserPrivilege audienceMode openUserMenu game))
+        , HtmlK.ol [] (users |> List.map (viewUser wrap shared localUserId localUserPrivilege audienceMode openUserMenu game chat))
         ]
     )
 
@@ -1190,8 +1355,8 @@ byRole users =
         |> List.filter (\( _, us ) -> not (List.isEmpty us))
 
 
-viewUser : (Msg -> msg) -> Shared -> User.Id -> User.Privilege -> Bool -> Maybe User.Id -> Maybe Game -> ( User.Id, User ) -> ( String, Html msg )
-viewUser wrap shared localUserId localUserPrivilege audienceMode openUserMenu game ( userId, user ) =
+viewUser : (Msg -> msg) -> Shared -> User.Id -> User.Privilege -> Bool -> Maybe User.Id -> Maybe Game -> Maybe (List User.Id) -> ( User.Id, User ) -> ( String, Html msg )
+viewUser wrap shared localUserId localUserPrivilege audienceMode openUserMenu game chat ( userId, user ) =
     let
         ( secondary, score ) =
             userDetails shared game userId user
@@ -1273,6 +1438,21 @@ viewUser wrap shared localUserId localUserPrivilege audienceMode openUserMenu ga
                                                     Nothing
                                 in
                                 let
+                                    chatMute =
+                                        case ( localUserPrivilege, chat ) of
+                                            ( User.Privileged, Just muted ) ->
+                                                if userId == localUserId then
+                                                    Nothing
+
+                                                else if muted |> List.member userId then
+                                                    ContextMenu.button Icon.chatUnmute Strings.ChatUnmute Strings.ChatUnmute (SetChatMuted userId False |> wrap |> Just) |> Just
+
+                                                else
+                                                    ContextMenu.button Icon.chatMute Strings.ChatMute Strings.ChatMute (SetChatMuted userId True |> wrap |> Just) |> Just
+
+                                            _ ->
+                                                Nothing
+
                                     setAway =
                                         if userId == localUserId && game /= Nothing then
                                             setPresenceMenuItem wrap player |> Just
@@ -1289,6 +1469,7 @@ viewUser wrap shared localUserId localUserPrivilege audienceMode openUserMenu ga
                                             Nothing
                                 in
                                 [ setAway
+                                , chatMute
                                 , kickOrLeave
                                 ]
 

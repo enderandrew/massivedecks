@@ -250,7 +250,7 @@ view shared model =
                 ]
             ]
         , Card.view []
-            [ Tabs.view
+            [ Tabs.viewWithLinks
                 { selected = r.section
                 , change = \s -> Route.Start { r | section = s |> Maybe.withDefault r.section } |> Global.ChangePage
                 , ids = [ New, Join model.gameCode, Find, About ]
@@ -258,6 +258,9 @@ view shared model =
                 , equals = sectionsMatch
                 , stacked = False
                 }
+                [ siteLink "https://enderandrew.com/CAH-Generator/" Icon.generateCards (Strings.GenerateCards |> Lang.string shared)
+                , siteLink "https://enderandrew.com/rando/" Icon.rando (Strings.Rando |> Lang.string shared)
+                ]
             , sectionContent shared model
             ]
         , Html.footer [ HtmlA.class "version-info" ]
@@ -265,7 +268,7 @@ view shared model =
                 [ Html.blankA
                     [ HtmlA.class "logo"
                     , Strings.MDProject |> Lang.title shared
-                    , HtmlA.href "https://github.com/H0-pe/massivedecks"
+                    , HtmlA.href "https://github.com/enderandrew/massivedecks"
                     ]
                     [ Icon.massiveDecks |> Icon.styled [ Strings.MDLogoDescription |> Lang.alt shared ] |> Icon.view ]
                 , Html.blankA
@@ -290,6 +293,14 @@ view shared model =
 
 
 {- Private -}
+
+
+{-| A button in the row of tabs that opens another page on the site.
+-}
+siteLink : String -> Icon.Icon Icon.WithoutId -> String -> Html msg
+siteLink url icon label =
+    Html.a [ HtmlA.class "ui-tab-link", HtmlA.href url ]
+        [ icon |> Icon.view, Html.span [] [ Html.text label ] ]
 
 
 tabFor : Shared -> Section -> Tabs.TabModel msg
@@ -434,9 +445,15 @@ newContent shared model =
                 Icon.start
 
         error =
-            model.newLobbyRequest.generalError
-                |> Maybe.map (Error.view shared (Route.Start model.route))
-                |> Maybe.withDefault Html.nothing
+            case model.newLobbyRequest.generalError of
+                Just generalError ->
+                    generalError |> Error.view shared (Route.Start model.route)
+
+                Nothing ->
+                    -- The server refused (e.g: too many new games from one address).
+                    model.newLobbyRequest.error
+                        |> Maybe.andThen (MdError.describe >> Message.error >> Message.view shared)
+                        |> Maybe.withDefault Html.nothing
 
         canStart =
             not (model.name == "" || loading)

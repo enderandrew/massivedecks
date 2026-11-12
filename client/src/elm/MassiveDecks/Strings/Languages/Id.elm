@@ -1176,6 +1176,36 @@ translate _ mdString =
         ChatEmpty ->
             [ Text "Belum ada pesan. Sapa yang lain!" ]
 
+        GenerateCards ->
+            [ Text "Buat Kartu" ]
+
+        Rando ->
+            [ Text "Rando" ]
+
+        ChatDeleteMessage ->
+            [ Text "Hapus pesan" ]
+
+        ChatMute ->
+            [ Text "Bisukan di obrolan" ]
+
+        ChatUnmute ->
+            [ Text "Batalkan bisu di obrolan" ]
+
+        UserChatMuted { username } ->
+            [ Text username, Text " dibisukan di obrolan." ]
+
+        UserChatUnmuted { username } ->
+            [ Text username, Text " bisa mengobrol lagi." ]
+
+        ChatMutedPlaceholder ->
+            [ Text "Seorang host telah membisukan Anda di obrolan." ]
+
+        ChatNotification { username, message } ->
+            [ Text username, Text ": ", Text message ]
+
+        HouseRulePackingHeatSingleAnswerNote ->
+            [ Text "Tidak berpengaruh selama ", ref HouseRuleSingleAnswer, Text " aktif, karena tidak ada kartu hitam yang butuh lebih dari satu jawaban." ]
+
         DiscordPost ->
             [ Text "Kirim undangan ke Discord" ]
 

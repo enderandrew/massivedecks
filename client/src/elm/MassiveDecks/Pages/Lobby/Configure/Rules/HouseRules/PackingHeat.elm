@@ -27,5 +27,9 @@ enabled =
         { id = Enabled
         , editor = Editor.bool Strings.HouseRulePackingHeat
         , validator = Validator.none
-        , messages = always [ Message.info Strings.HouseRulePackingHeatDescription ]
+        , messages =
+            always
+                [ Message.info Strings.HouseRulePackingHeatDescription
+                , Message.info Strings.HouseRulePackingHeatSingleAnswerNote
+                ]
         }

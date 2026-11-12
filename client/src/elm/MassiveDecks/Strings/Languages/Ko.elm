@@ -1150,6 +1150,36 @@ translate _ mdString =
         ChatEmpty ->
             [ Text "아직 메시지가 없습니다. 인사해 보세요!" ]
 
+        GenerateCards ->
+            [ Text "카드 만들기" ]
+
+        Rando ->
+            [ Text "Rando" ]
+
+        ChatDeleteMessage ->
+            [ Text "메시지 삭제" ]
+
+        ChatMute ->
+            [ Text "채팅 음소거" ]
+
+        ChatUnmute ->
+            [ Text "채팅 음소거 해제" ]
+
+        UserChatMuted { username } ->
+            [ Text username, Text " 님이 채팅에서 음소거되었습니다." ]
+
+        UserChatUnmuted { username } ->
+            [ Text username, Text " 님이 다시 채팅할 수 있습니다." ]
+
+        ChatMutedPlaceholder ->
+            [ Text "호스트가 채팅에서 회원님을 음소거했습니다." ]
+
+        ChatNotification { username, message } ->
+            [ Text username, Text ": ", Text message ]
+
+        HouseRulePackingHeatSingleAnswerNote ->
+            [ ref HouseRuleSingleAnswer, Text " 규칙이 켜져 있으면 효과가 없습니다. 답이 둘 이상 필요한 검은 카드가 없기 때문입니다." ]
+
         DiscordPost ->
             [ Text "Discord에 초대 올리기" ]
 

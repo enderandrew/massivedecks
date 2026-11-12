@@ -48,13 +48,13 @@ lobbySummaries msg =
 
 {-| Create a new lobby.
 -}
-newLobby : (Request.Response Never Lobby.Auth -> msg) -> Start.LobbyCreation -> Request msg
+newLobby : (Request.Response MdError Lobby.Auth -> msg) -> Start.LobbyCreation -> Request msg
 newLobby msg creation =
     { method = "POST"
     , headers = []
     , url = url [ "games" ]
     , body = creation |> Encoders.lobbyCreation |> Http.jsonBody
-    , expect = Request.expectResponse (decodeToken >> msg) noError Decoders.lobbyToken
+    , expect = Request.expectResponse (decodeToken >> msg) Decoders.mdError Decoders.lobbyToken
     , timeout = Nothing
     , tracker = Nothing
     }

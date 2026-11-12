@@ -1182,6 +1182,36 @@ translate _ mdString =
         ChatEmpty ->
             [ Text "Nenhuma mensagem ainda. Diga oi!" ]
 
+        GenerateCards ->
+            [ Text "Gerar cartas" ]
+
+        Rando ->
+            [ Text "Rando" ]
+
+        ChatDeleteMessage ->
+            [ Text "Apagar mensagem" ]
+
+        ChatMute ->
+            [ Text "Silenciar no chat" ]
+
+        ChatUnmute ->
+            [ Text "Reativar no chat" ]
+
+        UserChatMuted { username } ->
+            [ Text username, Text " foi silenciado no chat." ]
+
+        UserChatUnmuted { username } ->
+            [ Text username, Text " pode conversar de novo." ]
+
+        ChatMutedPlaceholder ->
+            [ Text "Um anfitrião silenciou você no chat." ]
+
+        ChatNotification { username, message } ->
+            [ Text username, Text ": ", Text message ]
+
+        HouseRulePackingHeatSingleAnswerNote ->
+            [ Text "Não tem efeito enquanto ", ref HouseRuleSingleAnswer, Text " estiver ligada, porque nenhuma carta preta precisa de mais de uma resposta." ]
+
         DiscordPost ->
             [ Text "Postar convite no Discord" ]
 

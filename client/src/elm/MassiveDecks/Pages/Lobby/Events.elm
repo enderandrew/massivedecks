@@ -40,6 +40,8 @@ type Event
     | ErrorEncountered { error : MdError.GameStateError }
     | ChatReceived { message : ChatMessage }
     | DiscordInviteSent { user : User.Id }
+    | ChatMessageDeleted { id : Int }
+    | ChatMuteChanged { user : User.Id, muted : Bool }
 
 
 {-| The user's intentional presence in the lobby.

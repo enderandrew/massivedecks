@@ -1280,6 +1280,36 @@ translate maybeDeclCase mdString =
         ChatEmpty ->
             [ Text "Brak wiadomości. Przywitaj się!" ]
 
+        GenerateCards ->
+            [ Text "Generuj karty" ]
+
+        Rando ->
+            [ Text "Rando" ]
+
+        ChatDeleteMessage ->
+            [ Text "Usuń wiadomość" ]
+
+        ChatMute ->
+            [ Text "Wycisz na czacie" ]
+
+        ChatUnmute ->
+            [ Text "Wyłącz wyciszenie na czacie" ]
+
+        UserChatMuted { username } ->
+            [ Text username, Text " – wyciszono na czacie." ]
+
+        UserChatUnmuted { username } ->
+            [ Text username, Text " znów może pisać na czacie." ]
+
+        ChatMutedPlaceholder ->
+            [ Text "Gospodarz wyciszył cię na czacie." ]
+
+        ChatNotification { username, message } ->
+            [ Text username, Text ": ", Text message ]
+
+        HouseRulePackingHeatSingleAnswerNote ->
+            [ Text "Nie działa, gdy włączona jest zasada ", ref HouseRuleSingleAnswer, Text ", bo żadna czarna karta nie wymaga wtedy więcej niż jednej odpowiedzi." ]
+
         DiscordPost ->
             [ Text "Opublikuj zaproszenie na Discordzie" ]
 

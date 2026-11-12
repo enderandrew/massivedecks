@@ -1,5 +1,6 @@
 module MassiveDecks.Pages.Lobby.Actions exposing
     ( configure
+    , deleteChatMessage
     , discard
     , endGame
     , enforceTimeLimit
@@ -13,6 +14,7 @@ module MassiveDecks.Pages.Lobby.Actions exposing
     , redraw
     , reveal
     , sendChat
+    , setChatMuted
     , setPlayerAway
     , setPresence
     , setPrivilege
@@ -145,6 +147,16 @@ sendChat message =
 inviteToDiscord : Cmd msg
 inviteToDiscord =
     action "InviteToDiscord" []
+
+
+deleteChatMessage : Int -> Cmd msg
+deleteChatMessage id =
+    action "DeleteChatMessage" [ ( "id", id |> Json.int ) ]
+
+
+setChatMuted : User.Id -> Bool -> Cmd msg
+setChatMuted user muted =
+    action "SetChatMuted" [ ( "user", user |> Json.string ), ( "muted", muted |> Json.bool ) ]
 
 
 endGame : Cmd msg

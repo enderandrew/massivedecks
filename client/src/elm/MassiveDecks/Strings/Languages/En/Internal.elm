@@ -1172,6 +1172,36 @@ translate _ mdString =
         ChatEmpty ->
             [ Text "No messages yet. Say hello!" ]
 
+        GenerateCards ->
+            [ Text "Generate Cards" ]
+
+        Rando ->
+            [ Text "Rando" ]
+
+        ChatDeleteMessage ->
+            [ Text "Delete message" ]
+
+        ChatMute ->
+            [ Text "Mute in chat" ]
+
+        ChatUnmute ->
+            [ Text "Unmute in chat" ]
+
+        UserChatMuted { username } ->
+            [ Text username, Text " was muted in the chat." ]
+
+        UserChatUnmuted { username } ->
+            [ Text username, Text " can chat again." ]
+
+        ChatMutedPlaceholder ->
+            [ Text "A host has muted you in the chat." ]
+
+        ChatNotification { username, message } ->
+            [ Text username, Text ": ", Text message ]
+
+        HouseRulePackingHeatSingleAnswerNote ->
+            [ Text "This does nothing while ", ref HouseRuleSingleAnswer, Text " is on, as no black card then needs more than one answer." ]
+
         DiscordPost ->
             [ Text "Post invite to Discord" ]
 

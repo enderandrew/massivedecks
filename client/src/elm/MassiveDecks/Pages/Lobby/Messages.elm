@@ -37,4 +37,6 @@ type Msg
     | SetChatDraft String
     | SendChat
     | InviteToDiscord
+    | DeleteChatMessage Int
+    | SetChatMuted User.Id Bool
     | NoOp

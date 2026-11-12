@@ -149,6 +149,31 @@ send =
     Icon.paperPlane
 
 
+chatMute : Icon WithoutId
+chatMute =
+    Icon.commentSlash
+
+
+chatUnmute : Icon WithoutId
+chatUnmute =
+    Icon.comment
+
+
+deleteMessage : Icon WithoutId
+deleteMessage =
+    Icon.trashCan
+
+
+generateCards : Icon WithoutId
+generateCards =
+    Icon.wandMagicSparkles
+
+
+rando : Icon WithoutId
+rando =
+    Icon.dice
+
+
 spectator : Icon WithoutId
 spectator =
     Icon.tv
