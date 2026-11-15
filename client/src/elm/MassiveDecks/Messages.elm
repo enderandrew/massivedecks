@@ -32,3 +32,4 @@ type Msg
     | UpdateServerConfig ServerConfig
     | Refresh
     | BlockedExternalUrl
+    | LeaveApp String

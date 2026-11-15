@@ -1,4 +1,4 @@
-module MassiveDecks.BasePath exposing (segments, strip)
+module MassiveDecks.BasePath exposing (isInside, segments, strip)
 
 {-| The path the client is served from, for hosting somewhere other than the root of a site (e.g. `/CAH/`).
 
@@ -13,6 +13,13 @@ same way `Version.elm` is. Empty means the root of the site.
 segments : List String
 segments =
     []
+
+
+{-| If a URL's path segments are inside the base path (so are pages of this app, not other pages on the same site).
+-}
+isInside : List String -> Bool
+isInside parts =
+    List.take (List.length segments) parts == segments
 
 
 {-| Remove the base path from the front of a URL's path segments, if it is there.
