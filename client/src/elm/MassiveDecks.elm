@@ -6,6 +6,7 @@ import Html
 import Html.Attributes as HtmlA
 import Http
 import Json.Decode as Json
+import MassiveDecks.BasePath as BasePath
 import MassiveDecks.Cast.Client as Cast
 import MassiveDecks.Cast.Model as Cast
 import MassiveDecks.Cast.Server as Cast
@@ -127,7 +128,12 @@ onUrlRequest : Browser.UrlRequest -> Msg
 onUrlRequest urlRequest =
     case urlRequest of
         Browser.Internal url ->
-            url |> Route.fromUrl |> ChangePage
+            if url.path |> String.split "/" |> List.filter (not << String.isEmpty) |> BasePath.isInside then
+                url |> Route.fromUrl |> ChangePage
+
+            else
+                -- Another page on the same site (e.g: /CAH-Generator/), not part of the game.
+                url |> Url.toString |> LeaveApp
 
         Browser.External _ ->
             -- We intentionally block external URLs. Use `Util.blankA` to make a link that opens in a new window.
@@ -278,6 +284,9 @@ update msg model =
 
         Refresh ->
             ( model, Navigation.reload )
+
+        LeaveApp url ->
+            ( model, Navigation.load url )
 
         -- TODO: Error? This would be an application error. It's pretty harmless though, probably not worth interrupting.
         BlockedExternalUrl ->
